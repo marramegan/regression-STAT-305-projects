@@ -1,0 +1,392 @@
+---
+title: "Marra Homework 1"
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+date: "2022-09-13"
+---
+
+EXERCISE 1:
+```{r}
+library(car)
+library(corrplot)
+library(MPV)
+prestige <- data.frame(Prestige[,4], Prestige[, -c(4,6)])
+colnames(prestige)[1] <- 'prestige'
+help(Prestige) 
+```
+1) Description: The Prestige data frame has 102 rows and 6 columns.   
+  Education: Average education of occupational incumbents, years, in 1971.   
+  Income: Average income of incumbents, dollars, in 1971.   
+  Women: Percentage of incumbents who are women.   
+  Prestige:Pineo-Porter prestige score for occupation, from a social survey conducted in the mid-1960s.   
+  Census: Canadian Census occupational code.   
+  Type: Type of occupation.   
+
+
+2) Comment on the scatterplot:
+```{r}
+pairs(prestige, panel=panel.smooth, main='Prestige Data', col=3) 
+plotlm <- function(lm.mod){quartz(); par(mfrow=c(2,2)); plot(lm.mod)}
+```
+
+  Correlations:   
+    Strongest positive correlation between prestige and education.  
+    Moderately positive correlation between prestige and income.  
+    Moderately negative correlation between prestige and women.   
+    Strongest negative correlation between prestige and census.   
+
+3) Comment on correlation plot:
+```{r}
+corrplot(cor(prestige))
+```
+Correlations between response variable and predictor variables:   
+  Prestige and education: Strongest positive correlation.  
+  Prestige and income: Positive (strong) correlation.  
+  Prestige and women: Negative (weak) correlation.  
+  Prestige and census: Strongest negative correlation.   
+
+General/other correlations:  
+  Positive correlation between:  
+    - Prestige and education (strongest positive)  
+    - Prestige and income  
+    - Education and income  
+  Weak correlation between:  
+    - Education and women   
+    - Prestige and women   
+  Negative correlation between:  
+    - Prestige and census   
+    - Education and census (strongest negative)  
+      
+4) Fit the model for $M_\text{education}: \text{prestige} = \beta_0 + \beta_1(\text{education}) + \epsilon$ and display both the summary of the model and the residual analysis plot. 
+```{r}
+model <- lm(prestige ~ education, data = Prestige)
+model
+
+summary(model)
+
+res <- resid(model)
+plot(fitted(model), res)
+abline(0,0)
+
+par(mfrow=c(2,2)); plot(model)
+```
+
+```{r}
+
+cor(prestige) # Not part of the question, but I wanted to see the exact values. 
+
+```
+
+5) Comment on summary and residual plot findings:
+  - It is reasonable to assume that the relationship between prestige and education is linear, since the residual points appear randomly scattered around the 0 line.  
+  - It is also suggested that the variances of the error terms are equal since the residual points are roughly around the 0 line.   
+  - There are no residual points that really stand out, so this suggests there are no outliers in the data.   
+  - The p-value for the predictor variable (education) is highly significant. This means there is significant association between the response variable (prestige) and education. Looking at the residual plots, the data approximately follows a positive correlation line. This provides further evidence that there is strong correlation between education and prestige.   
+
+
+6) Generate the confidence bands and prediction bands plot for this model. 
+
+```{r}
+library(ggplot2)
+library(car)
+
+prestige <- data.frame(Prestige[,4], Prestige[,-c(4,6)])
+colnames(prestige)[1] <- 'prestige'
+
+
+lm.mod <- lm(prestige~education, data=prestige)
+
+xxnew <- data.frame(education=prestige$education)
+xnew <- prestige$education
+ynew <- prestige$prestige
+
+pred.band <- predict(lm.mod, xxnew, interval="prediction")
+conf.band <- predict(lm.mod, xxnew, interval="confidence")
+
+datadone <- data.frame(xnew,ynew, conf.band[,1], conf.band[,2], conf.band[,3], pred.band[,2], pred.band[,3])
+colnames(datadone) <- c('x', 'y', 'yhat', 'lc', 'uc', 'lp','up')
+
+p <- ggplot(datadone, aes(x, y)) +
+  geom_point() +
+  geom_line(color='black', aes(x=x, y=yhat))
+
+p + geom_line(aes(y = lc), color = "blue", linetype = "dotted")+
+  geom_line(aes(y = uc), color = "blue", linetype = "dotted") +
+  geom_line(aes(y = lp), color = "red", linetype = "dashed")+
+  geom_line(aes(y = up), color = "red", linetype = "dashed") 
+
+```
+
+```{r}
+# x <- Prestige$education
+# y <- Prestige$prestige
+# xy <- data.frame(x,y)
+
+# lm.xy <- lm(y~x, data=xy)
+
+# confpredbandlm(x,y, lm.xy, level=0.90)
+```
+
+7) Fit $M_{women}: \text{prestige} = \beta_0 + \beta_1(\text{women}) + \epsilon$ and compare it to the previous equation. 
+  
+```{r}
+model2 <- lm(prestige ~ women, data = Prestige)
+model2
+
+summary(model2)
+
+res <- resid(model2)
+plot(fitted(model2), res)
+abline(0,0)
+
+par(mfrow=c(2,2)); plot(model2)
+```
+
+
+Comparing this model to the previous model:   
+  - Here, the residual points are more sporadic and seem to bundle together more closely on the right side of the plot than the left. This suggests the relationship between prestige and women is less linear.   
+  - There are no residual points that really stand out, so this suggests there are no outliers in the data.   
+  - The p-value for the predictor variable (women) is very insignificant. This means there is little to no significant association between the response variable (prestige) and the predictor variable. Comparing this to previous results, it appears there is a strong correlation between prestige and education, but a weak correlation between prestige and women.   
+
+
+8) Perform a hypothesis test.
+
+$H_0: E[\text{prestige}|\text{education} + 1] - E[\text{prestige}|\text{education}] >= 6 \\ H_a: E[\text{prestige}|\text{education} + 1] - E[\text{prestige}|\text{education}] < 6$
+
+$E[\text{prestige}|\text{education}+1]-E[\text{prestige}|\text{education}] < 6 \\$
+  $\beta_0 + \beta_1(\text{education}+1) - [\beta_0 + \beta_1(\text{education})] < 6 \\$
+  $\beta_0 + \beta_1(\text{education}) + \beta_1 - \beta_1 - \beta_1(\text{education}) < 6 \\$
+  $\beta_1 < 6$
+  
+$\boxed{H_0: \beta_1 \geq 6 \\ H_a: \beta_1 <6}$
+    
+  
+$t_{\hat{\beta_1}}=\frac{\hat{\beta_1}-\text{hypothesized value}}{ese(\hat{\beta_1})}:$
+```{r}
+
+(5.361-6)/(0.332) # This is computing t-value
+pt(-1.924699, df=100) # This is computing the p-value
+
+```
+
+Here, I will use $\alpha = 0.05$
+
+  $\rightarrow 0.0286 < 0.05$
+  Thus, we have enough evidence to reject $H_0$
+  
+
+9) Compute 90% confidence and predication interval corresponding to 10 years of education.
+```{r}
+
+xnew <- data.frame(education=c(10))
+predict(model, xnew, interval="confidence", level=0.90)
+
+predict(model, xnew, interval="prediction", level=0.90)
+
+# model <- lm(prestige ~ education, data = Prestige)
+# model2 <- lm(prestige ~ women, data = Prestige)
+
+
+```
+
+\newpage
+
+
+EXERCISE 2:
+
+1) Comment on this data.
+```{r}
+help(cement)
+```
+  Description: The cement data frame has 13 rows and 5 columns.  
+  y, x1, x2, x3, x4 = all numeric vectors
+
+2) Generate the matrix of the pairwise scatterplots of all variables. 
+```{r}
+pairs(cement, panel=panel.smooth, col=3)
+```
+
+3) Plot the correlation matrix. Comment on the relationship among variables. 
+
+```{r}
+corrplot(cor(cement))
+```
+```{r}
+
+cor(cement) # Not part of the question, but I wanted to see the exact values.
+
+```
+Correlations between response variable and predictor variables:   
+  y and x2: Strongest positive correlation.  
+  y and x1: Positive correlation.  
+  y and x3: Negative correlation.   
+  y and x4: Strongest negative correlation.   
+  
+General/other correlations:  
+  Positive correlation between:  
+    - y and x2 (strongest positive)  
+    - y and x1   
+  Weak correlation between:   
+    - x1 and x2   
+    - x2 and x3   
+    - x1 and x4  
+  Negative correlation between:  
+    - x1 and x3  
+    - y and x3  
+    - y and x4  
+    - x2 and x4 (strongest negative)
+  
+4) Explain what you see with the distribution of variables.
+```{r}
+boxplot(cement)
+```
+  y looks normally distributed and symmetric.   
+  x1 looks somewhat normally distributed.   
+  x2 looks negatively skewed. (left skew)  
+  x3 looks very positively skewed. (right skew)  
+  x4 looks positively skewed. (right skew)  
+
+5) Comment on summary.
+```{r}
+summary(lm(y~., data=cement))
+```
+  Based on the summary, there is a strange paradox going on. We have a very small overall p-value but relatively large p-values among the variables. If we were to pick a level of significance of 0.1, 0.05, 0.015, or smaller, we would see that the p-value is less than that alpha value. However, there are no predictor variables that are less than alpha (apart from x2 if we were to pick $\alpha=0.1$). Thus, the data is significant but the variables are insignificant. Which is very interesting. 
+  
+6) Comment on plot.
+```{r}
+plot(lm(y~., data=cement))
+```
+   - It is reasonable to assume that the data is linear, since the residual points appear randomly scattered around the 0 line.   
+  - It is also suggested that the variances of the error terms are equal since the residual points are roughly around the 0 line.   
+  - There are no residual points that really stand out, so this suggests there are no outliers in the data. 
+
+7) Specify the hypothesis test and comment on the results.
+```{r}
+shapiro.test(resid(lm(y~., data=cement)))
+```
+  
+  $H_0: \text{residual normally distributed} \\$
+  $H_a: \text{residual not normally distributed}$
+  
+  Since the p-value is relatively large, if we assign $\alpha$ values like 0.1, 0.05, 0.01, we will never be able to reject $H_0$ since $\text{p-val} > \alpha$   
+  
+
+\newpage
+  
+
+EXERCISE 3:
+
+1a) Find a point with the lowest leverage.
+
+  The lowest leverage point is the one where $\frac{(x^*-\bar{x})^2}{S_{XX}}$ reaches the smallest value, namely 0.   
+  
+  $\bar{x} = \text{sample mean of } x \\$
+  
+  $\text{leverage}(\bar{x})=\frac{1}{n}=\text{min}_{x_i}\{\text{leverage}(x^*)\} \\$
+
+  Therefore, $\boxed{\text{argmin}_{x_i}\{\text{leverage}(x^*)\}= \bar{x}} \\$
+
+
+1b) Find the leverage a point situated 3 standard deviations away from the center.
+
+$\text{leverage}(\bar{x} + 3S_X)=\frac{1}{n}+\frac{9S_X^2}{S_{XX}}=\frac{1}{n}+\frac{9}{n-1}=\boxed{\frac{10n-1}{n(n-1)}}$
+
+
+1c) What point would achieve the highest leverage possible?
+
+$\text{max}_{x_i}\{\text{leverage}(x^*)\}=1 \\$
+$\frac{1}{n}+\frac{(x^*-\bar{x})^2}{S_{XX}}=1$
+$\text{max}\{\text{leverage}(x^*)\}=\boxed{\bar{x}+\frac{n-1}{\sqrt{n}}\cdot S_X} \\$
+
+
+2a) If the residuals are normally distributed, how often will a standardized residual be less than -2.33?
+
+Let $p = \text{percentage of time desired} \\$
+  $p=Pr[Z < -2.33] = \phi(-2.33)=0.01=\boxed{1 \%} \\$
+  $\rightarrow Z\sim N(0,1)$ is the standard normal
+
+2b) Find when $\tilde{r}_i$ when $h_{ii}$ is close 1 
+
+$\sum_{j=1}^{n} h_{ii}$ and $\hat{y_i}=h_{ii}y_{i}+\sum_{j \neq 1} h_{ij}y_{j}$
+When $h_{ii}$ is close to 1, all other $h_{ij}$ values will be close to 0, thus,
+$\boxed{\hat{y_i}=y_i}$ $(\text{for } h_{ii} \approx 1)$
+
+
+\newpage
+
+BONUS:  
+
+General info:   
+SLR model: $M_{SNR}: Y_i = \beta_0+\beta_1x_i+\epsilon_i$ with $E[\epsilon_1]=0$ and $E[\epsilon_1^2]=\sigma^2$ for $i=1,...,n$.   
+Consider the ordinary least squares estimators $E[\hat{\beta_1}]=\beta_1$ and $E[\hat{\beta_0}]=\beta_0$.   
+Let $\hat{Y_i}=\hat{\beta_0}+\hat{\beta_1}x_i$ for all $i \in [n]$.  
+Let $r_i=Y_i-\hat{Y_i}$ for $i \in [n]$.  
+Let $S_{XY} = \sum_{i=1}^{n} (x_i - \bar{x})(y_i - \bar{y})$.  
+Recall $\hat{\beta_1}=\frac{S_{XY}}{S_{XX}}$ and $\hat{\beta_0}=\bar{y}-\hat{\beta_1}\bar{x}$.  
+Also, $\bar{x}=n^{-1} \sum_{i=1}^{n}x_i$ and $\bar{y}=n^{-1} \sum_{i=1}^{n}y_i$.   
+
+1) Show that $\sum_{i=1}^{n} r_i=0, \space i \in [n]$.   
+
+Since the residual formula is the actual minus the expected $(r_i = Y_i - \hat{Y_i})$ when we plug in each section of the equations, we're only left with the noise/error function, $\epsilon$, which should equal 0.   
+
+Total error = $r_1 + r_2 + r_3 + \dots \\$
+$=\sum_{i=1}^{n}r_i \\$
+$= \sum_{i=1}^{n}(y_i-(\hat{\beta_0}+\hat{\beta_1}x_i)) \\$
+$=\sum_{i=1}^{n}(x_i-n\bar{x}) \\$
+$=n\bar{x}-n\bar{x} \\$
+$=0$
+
+$\sum_{i=1}^{n}r_i = \sum_{i=1}^{n}(y_i-(\hat{\beta_0}+\hat{\beta_1})) =\boxed{\text{always zero}}$
+
+
+2) Show that $S_{XY}=\sum_{i=1}^{n}y_i(x_i - \bar{x})$.
+
+$S_{XX} = \sum_{i=1}^{n}(x_i-\bar{x})^2 = \text{total variation of X} \\$
+$S_{XY} = \sum_{i=1}^{n}(x_i-\bar{x})(y_i-\bar{y}) = \text{total covariation between X and Y}\\$
+$S_{YY} = \sum_{i=1}^{n}(y_i-\bar{y})^2 = \text{total variation of Y} \\$
+$\bar{x} \text{ and } \bar{y} \text{ are numbers} \\$
+$\text{We want to focus on the } x_i \text{ and } y_i \text{ values. Specifically } y_i.$
+
+$\boxed{S_{XY} = \sum_{i=1}^{n}(x_i-\bar{x})(y_i-\bar{y}) =(\sum_{i=1}^{n}x_iy_i)-\bar{x}\sum_{i=1}^{n}y_i=(\sum_{i=i}^{n}x_iy_i)-n\bar{x}\bar{y}} \\$
+
+
+Scratch work:
+$\sum_{i=1}^{n}y_ix_i-y_i\bar{x}=\sum_{i-1}^{n}(x_i-\bar{x})(y_i-\bar{y}) \\$
+$x_iy_i-ny_i=(x_i-n)(y_i-n) \\$
+$x_iy_i-ny_i=(x_iy_i-nx_i-ny_i-n^2) \\$
+$\text{then plugging in functions from above} \\$
+$x_iy_i-ny_i=x_iy_i-n(\frac{1}{n})x_i-ny_i \\$
+$\rightarrow x_iy_i = x_iy_i \checkmark$
+
+
+3) Find $c_i$, for $i \in [n]$ such that $\hat{\beta_1}=\sum_{i=1}^{n}c_iy_i$.
+
+$\hat{\beta_1}=\frac{S_{XY}}{S_{XX}}=\sum_{i=1}^{n}c_iy_i \\$
+$\frac{\sum_{i=1}^{n} (x_i - \bar{x})(y_i - \bar{y})}{\sum_{i=1}^{n} (x_i - \bar{x})^2} = \sum_{i=1}^{n}c_iy_i \\$
+$\frac{(y_i - \bar{y})}{(x_i-\bar{x})}=c_iy_i \\$
+$\frac{(y_i - \bar{y})}{y_i(x_i-\bar{x})}=c_i \\$
+$c_i=\frac{(y_i - \bar{y})}{y_i(x_i-\bar{x})} \\$
+$\rightarrow \boxed{c_i = \frac{(x_i-\bar{x})}{S_{XX}}}$
+
+
+
+
+
+4) Show that $\sum_{i=1}^{n}c_i=0$ and $\sum_{i=1}^{n}c_ix_i=1$.
+
+$\boxed{\sum_{i=1}^{n}c_ix_i=1 \text{ since } \sum (x_i-\bar{x})x_i=S_{XX}}$
+
+
+5) Find $a, b, c$ such that $\hat{Y}=\hat{f(x)}=\hat{a}+\hat{b}(x-\hat{c})$.  
+
+$\hat{Y}=\hat{a}+\hat{b}x-\hat{b}\hat{c} \\$
+$\hat{Y_i}=\hat{\beta_0}+\hat{\beta_1}x_i \\$
+$\boxed{\hat{\beta_0}=\bar{y}-\hat{\beta_1}x}$
+
+
+
+
+
+

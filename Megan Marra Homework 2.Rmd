@@ -1,0 +1,363 @@
+---
+title: "Marra Homework 2"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+date: "2022-10-22"
+---
+```{r}
+library(car)
+library(corrplot)
+library(MPV)
+library(dplyr)
+library(ggplot2)
+library(leaps)
+library(AICcmodavg)
+```
+
+**WEEK 7 LECTURE, SLIDE 20/50 FOR HELPFUL R FUNCTIONS
+
+EXERCISE 1) Using gifted data set, response variable=y=score (scored of the child on tests), goal: build the best linear model that captures relationship between score and other variables.
+```{r}
+getwd()
+gifted <- read.csv('~/Downloads/gifted (1).txt')
+gifted
+```
+
+1.a)
+```{r}
+# Gifted <- data.frame(gifted[,4], gifted[, -c(4,6)])
+# colnames(Gifted)[1] <- 'Gifted'
+# help(Gifted)
+
+# with(gifted, plot(gifted$, gifted$score, main="Scatterplot", xlab="Explanatory Variables", ylab="Score", pch=1))
+
+pairs(gifted[,1:7], panel=panel.smooth, lower.panel=NULL, main="Gifted Data", col=3)
+```
+
+According to the scatterplots above, motheriq appears to be the strongest predictor variable. This is exhibited by the sharp positive slope in the specific scatterplot between score and motheriq. In descending order, score has the strongest relationship with motheriq, count, read, speak, cartoons, fatheriq, edutv.        
+Furthermore, it appears motheriq, count, and read have similar strong impacts on the response variable. As does speak and cartoons. (Should be noted that count and speak are strongly correlated with each other.)  
+
+```{r}
+cor(gifted)
+```
+
+1.b)  
+```{r}
+corrplot(cor(gifted))
+```
+According to the correlation plot above, score has the strongest positive correlation (almost identical) to motheriq, count, and read. 
+
+1.c) 
+```{r}
+hist(gifted$score, xlab="Score", main="Histogram of Score")
+
+shapiro.test(gifted$score)
+```
+In the Shapiro-Wilk test,    
+
+$H_0: \text{a variable is normally distributed} \\$
+$H_a: \text{a variable is not normally distributed} \\$
+
+If I picked a level of significance $\alpha=0.05$, then p-val>$\alpha$. Which means the distribution of gifted data is not significantly different from normal distribution, and that we cannot reject the null hypothesis. Therefore, we can assume normality.    
+
+1.d) 
+```{r}
+y <- gifted$score
+x <- gifted$motheriq
+
+lm.xy <- lm(y~x, data=gifted)
+
+summary(lm.xy)
+```
+
+1.e) 
+```{r}
+plot(lm.xy)
+```
+
+A model of the gifted data using score as the response variable and motheriq as the explanatory variable appears highly sustainable. Both variables and the overall model are considered significant based on the summary and plots above. However, there are some variables that could be influencing this estimation. Motheriq, count, and read have very similar levels of correlation with score. Having these type of replicated variables could impact the estimation of the best model. The fact that the variables in the data set appear to be measured on different scales could also be a source of problems.       
+
+
+1.f) The simple linear model may be written as: $\text{score}_i=\beta_0 + \beta_1(\text{motheriq}_i)+\epsilon_i$. Based on the summary statistics, $\text{score}_i=111.0930 + 0.4066(\text{motheriq}_i)$. Which means, when given a child's mother's IQ, we can predict an IQ test score for that child based on the mother's IQ alone. (0.4066 is the estimated slope)  
+
+1.g)
+```{r}
+#
+#   source('confpredbandlm.R')
+#
+
+   confpredbandlm <- function(x,y, lm.xy, level)
+   {
+    
+      # x    : Explanatory variable
+      # y    : Response variable
+      # level: Confidence level
+     
+      library(ggplot2)
+        
+      xxnew <- data.frame(x=x)
+      xnew  <- x
+      ynew  <- y
+      yhat  <- fitted(lm.xy)
+      
+      pred.band <- predict(lm.xy, xxnew, interval="prediction", level=level)
+      conf.band <- predict(lm.xy, xxnew, interval="confidence", level=level)
+    
+      datadone <- data.frame(xnew,ynew, conf.band[,1], conf.band[,2], conf.band[,3], pred.band[,2], pred.band[,3])
+      colnames(datadone) <- c('x', 'y', 'yhat', 'lc', 'uc', 'lp','up')
+    
+      
+      p <- ggplot(datadone, aes(x, y)) +
+           geom_point() +
+           geom_line(color='black', aes(x=x, y=yhat))
+    
+      p + geom_line(aes(y = lc), color = "blue", linetype = "dotted")+
+          geom_line(aes(y = uc), color = "blue", linetype = "dotted") +
+          geom_line(aes(y = lp), color = "red", linetype = "dashed")+
+          geom_line(aes(y = up), color = "red", linetype = "dashed") 
+    
+   }
+   
+
+confpredbandlm(x,y, lm.xy, level=.95)
+
+```
+
+Majority of the data points fall within the prediction bands and about a tenth of the points fall within the confidence bands. There is an outlier that lands outside of the prediction band which should be investigated. 
+  It should also be noted that the there is a large distance between the predication bands and confidence bands. This greater distance may be caused by high leverage points (for example, the more isolated point in the lower left corner) or the previously mentioned outlier. Or this may be caused by the fact that the amount of uncertainty increases as the model moves farther away from the mean. (Confidence and predication intervals take uncertainty of the intercept and slope into account, so as we move farther from the mean, the ends of the distribution fan out.)                 
+
+1.h) 
+```{r}
+MLRmodel <- lm(y~gifted$fatheriq+gifted$motheriq+
+                 gifted$speak+gifted$count+gifted$read+gifted$edutv+
+                 gifted$cartoons, 
+               data=gifted)
+summary(MLRmodel)
+```
+
+1.i) 
+```{r}
+MLRmodel.aic <- step(MLRmodel, scope=~., k=2, direction='both', trace=0)
+summary(MLRmodel.aic)
+```
+$\boxed{\text{AIC model: } \text{score}=\beta_0+\beta_1(\text{fatheriq})+\beta_2(\text{motheriq})+\beta_3(\text{read})+\beta_4(\text{edutv})+\beta_5(\text{cartoons})} \\$
+
+1.j) 
+```{r}
+MLRmodel.bic <- step(MLRmodel, scope=~., k=log(nrow(gifted)), 
+                     direction='both', trace=0)
+summary(MLRmodel.bic)
+```
+$\boxed{\text{BIC model: } \text{score}=\beta_0+\beta_1(\text{motheriq})+\beta_2(\text{read})+\beta_3(\text{edutv})+\beta_4(\text{cartoons})} \\$
+
+**Including this next plot just for reference: 
+```{r}
+lm.best <- regsubsets(gifted$score~., data=gifted, nbest=1)
+plot(lm.best)
+```
+
+
+1.k)
+```{r}
+regsubsets.out <-
+    regsubsets(score~.,
+               data =gifted,
+               nbest = 1,      # 1 best model for each number of predictors
+               nvmax = NULL,    # NULL for no limit on number of variables
+               force.in = NULL, force.out = NULL,
+               method = "seqrep")
+summary_best_subset <- summary(regsubsets.out)
+as.data.frame(summary_best_subset$outmat)
+
+which.max(summary_best_subset$adjr2)
+```
+$\boxed{R^2_{adj} \text{model }:\text{score}=\beta_0+\beta_1(\text{fatheriq})+\beta_2(\text{motheriq})+\beta_3(\text{speak})+\beta_4(\text{read)}+\beta_5(\text{edutv})+\beta_6(\text{cartoons})} \\$
+
+1.l) It's impossible to distinguish which model is the overall best, since each approach resulted in a different optimal model. The AIC method produced a model without the variables speak and count, the BIC method produced a model without fatheriq, speak, and count, and the $R^2_{adj}$ method produced a model without count.            
+    Therefore, the 'best' model depends on the type and size of the sample, i.e. the children whose scores we're predicting. As well as the assessor conducting the testing. For instance, if an assessor has a smaller sample size, they may prefer to use a smaller model. Thus, the BIC model would be the best one to use in this case since it's the smallest model of the three. If there was an assessor with a larger sample size of children, they would probably prefer to use the $R^2_{adj}$ model since it's the largest model of the three. If an assessor wanted to predict the children's scores based on a model that was in-between too borad and too narrow, they may prefer the AIC model which looks at more variables than BIC but less variables than $R^2_{adj}$.            
+
+\newpage
+
+EXERCISE 2) Let $\mathit{D}_n \{ (x_i, y_i) \sim^{{iid}} p_{XY} (x,y), x_i \in \mathbb{R}, y_i \in \mathbb{R}, i=1, \dots, n\}.$ Consider using the data $\mathit{D}_n$, to build mappings $f: \mathit{X} \rightarrow \mathit{Y}$ (Should be script X and Y, but that mathrsfr package isn't working for me. D and H should also be script D and H.), such that $f \in \mathit{H}$, where     
+(1) $$\mathit{H} = \{ x \rightarrow f(x) = \theta x, \theta \in \mathbb{R}^* \}$$ 
+
+Further supposed that $\forall i \in [n]$, we have        
+(2)$$p(y_i|x_i, \theta, \sigma^2)=\frac{1}{\sqrt{2 \pi \sigma^2}}e^{-\frac{1}{2 \sigma^2}(y_i-f(x_i))^2}$$
+
+where $f \in \mathit{H}$. Finally, let $\mathbf{x}=(x_1, x_2, \dots, x_n)^{\top}$, and $\mathbf{y}=(y_1, y_2, \dots, y_n)^{\top}$ and define       
+(3) $$SSE_n(a)=\sum^n_{i=1} (y_i- ax_i)^2=(\mathbf{y}-a\mathbf{x})^{\top}(\mathbf{y}-a\mathbf{x})=||\mathbf{y}-a\mathbf{x}||^2_2$$
+
+
+2.1) Input space: $\boxed{x \in \mathbb{R}}$. Dimensions: $\boxed{1}$ since $\mathbb{R}$ is a one dimensional space.           
+
+
+2.2) Output space: $\boxed{y\in \mathbb{R}}$. Dimensions: $\boxed{1}$since $\mathbb{R}$ is a one dimensional space.        
+
+
+2.3) Dimensionality of $\mathbf{x}$: $\boxed{1}$ since $x$ is an $n \times 1$ matrix space.         
+
+2.4) Dimensionality of $\mathbf{y}$: $\boxed{1}$ since $x$ is an $n \times 1$ matrix space.      
+
+
+2.5) Determine in this case the assumed conditional distributions of $Y_i$ given $x_i$ and deduce the distribution of $\mathbf{y}$ given $\mathbf{x} \\$
+$$Y_i|x_i= \boxed{(Y_i|x_i) \sim N(f(x_i), \sigma^2 )} \\$$
+$$\mathbf{y}|\mathbf{x}= \boxed{(\mathbf{y}|\mathbf{x}) \sim N_n(\mathbf{x} \theta, \sigma^2 \mathit{I}_n)} \\$$
+
+
+2.6) Rewrite the model defined by Equation (2) in its additive for featuring the deterministic component (signal) and the stochastic component (noise or error term). Be sure to reflect the fact that $f \in \mathit{H}$ as defined in Equation (1), but also the clear probability distribution used.     
+$$\text{Additive form of Equation (2): } \boxed{Y_i = f(x_i)+ \epsilon _i} \\$$
+$$\text{Probability distribution used: } (Y|X) \sim \text{Normal} (f(x_i), \sigma^2) \\$$
+
+
+2.7) $\boxed{\text{Regression}}$ is the machine learning task begin solved here since we are training different models based on an already existing model using specific labeled data. It's of significant importance specifically for mapping input functions to output functions. 
+
+
+2.8) Use the appropriate tools to find $\frac{\partial SSE_n(a)}{\partial a} \\$
+$$= \frac{\partial (\mathbf{y}-a\mathbf{x})^{\top}(\mathbf{y}-a\mathbf{x})}{\partial a} \\$$
+$$= -2\mathbf{x}^{\top}(\mathbf{y}-a\mathbf{x}) \\$$
+$$\Rightarrow 0= -2\mathbf{x}^{\top}(\mathbf{y}-a\mathbf{x}) \\$$
+$$\mathbf{x}^{\top}\mathbf{x}a=\mathbf{x}^{\top}\mathbf{y} \\$$
+$$\hat{\theta}^{(OLS)} = \hat{\theta} =\boxed{(\mathbf{x}^{\top}\mathbf{x})^{-1}\mathbf{x}^{\top}\mathbf{y}} \\$$
+$$\text{Or, an equivalent representation:}$$
+$$\frac{\partial SSE_n(a)}{\partial a} \\$$
+$$= \frac{\partial||\mathbf{y}-a\mathbf{x}||^2_2}{\partial a} \\$$
+$$= 2(\mathbf{y}-a\mathbf{x})(-\mathbf{x}) \\$$
+$$= -2\mathbf{x}^{\top}(\mathbf{y}-a\mathbf{x}) \\$$
+$$\Rightarrow 0 = -2\mathbf{x}^{\top}(\mathbf{y}-a\mathbf{x}) \\$$
+$$= \mathbf{x}^{\top}(\mathbf{y}-a\mathbf{x}) \\$$
+$$\boxed{\mathbf{x}^{\top}\mathbf{x}a =\mathbf{x}^{\top}\mathbf{y}} \\$$
+
+
+2.9) Show that $\hat{\theta }^{(OLS)}=argmin \{SSE(\theta)\}= argmin\{ (Y-X \theta)^{\top}(Y-X\theta) \} \\$
+$$\frac{\partial SSE_n(a)}{\partial a} \\$$
+$$= \frac{\partial (\mathbf{y}-a\mathbf{x})^{\top}(\mathbf{y}-a\mathbf{x})}{\partial a} \\$$
+$$= -2\mathbf{x}^{\top}(\mathbf{y}-a\mathbf{x}) \\$$
+$$\Rightarrow 0= -2\mathbf{x}^{\top}(\mathbf{y}-a\mathbf{x}) \\$$
+$$\mathbf{x}^{\top}\mathbf{x}a=\mathbf{x}^{\top}\mathbf{y} \\$$
+$$\hat{\theta}^{(OLS)} = \hat{\theta}= \mathbf{x}(\mathbf{x}^{\top}\mathbf{x})^{-1}\mathbf{x}^{\top}\mathbf{y} \\$$
+$$(\mathbf{x}^{\top}\mathbf{x})^{-1}\mathbf{x}^{\top}\mathbf{y}=\frac{\mathbf{x}^{\top}\mathbf{y}}{\mathbf{x}^{\top}\mathbf{x}} \checkmark \\$$
+*Lecture Notes 9/29/22
+
+Now, letting $\hat{Y_i}=\hat{\theta x_i}$ for $i \in [n]$ and $\mathbf{\hat{y}}=(\hat{y}_1, \dots , \hat{y}_n)^{\top}: \\$
+$$\mathbf{\hat{y}}=(\hat{y}_1, \dots, \hat{y}_n)^{\top} = \hat{Y}=\mathbf{X}\hat{\theta}=\mathbf{X}(\mathbf{X}^{\top}\mathbf{X})^{-1}\mathbf{X}^{\top}\mathbf{Y}=\boxed{\mathit{H}\mathbf{Y}}$$
+
+
+2.10) Find $\mathbf{mean}[\hat{\theta}]=\mathbb{E}[\hat{\theta}]$. 
+$$\mathbf{mean}[\hat{\theta}]=\mathbb{E}[\hat{\theta}]= \boxed{\theta}$$
+
+
+2.11) Find $\mathbf{variance}[\hat{\theta}]= \mathbb{V}[\hat{\theta}] \\$
+$$\mathbf{variance}[\hat{\theta}]= \mathbb{V}[\hat{\theta}]= \boxed{\sigma^2(\mathbf{x}^{\top}\mathbf{x})^{-1})}$$
+
+
+2.12) Find $\mathbf{mean}(Y_i|x_i)=\mathbb{E}[Y_i|x_i]$ for $i \in [n]$ and deduce $\mathbf{mean}(\mathbf{y}|\mathbf{x})=\mathbb{E}(\mathbf{y}|\mathbf{x})$
+$$\mathbf{mean}(Y_i|x_i)=\mathbb{E}[Y_i|x_i]= \boxed{x_i \theta} \\$$
+$$\mathbf{mean}(\mathbf{y}|\mathbf{x})=\mathbb{E}(\mathbf{y}|\mathbf{x})= \boxed{\mathbf{x} \theta} \\$$
+
+
+2.13) Write down $\mathbf{y}$ as a function of $\mathbf{x}, \theta$ and all other necessary parts of the assumed model in keeping with Equation (2):   
+$$\boxed{\mathbf{y}=\mathbf{x} \theta + \mathbf{e}}$$
+Or the pdf:
+$( \mathbf{y}| \mathbf{x}) \sim N_n (\mathbf{x} \theta, \sigma^2 \mathit{I}_n) \\$
+
+
+*Other extra notes for myself:     
+$R(f) = E[\mathit{l}(y, f(x))]= \int_{x \times y}\mathit{l}(y, f(x)) p_{\mathbf{XY}}dxdy \\$
+$f^*(X)=arminR(f)=argminE[\mathit{l}(y, f(x))] \\$
+$f^*(\cdot)$ is such that $R^*=R(f^*)=minR(f)$
+
+
+2.14) Write down $\mathbf{\hat{y}}$ as a function of $\mathbf{x}$ and $\mathbf{y}. \\$ 
+$$\mathbf{\hat{y}}=\mathbf{x} \hat{\theta} = \boxed{\mathbf{x}(\mathbf{x}^{\top}\mathbf{x})^{-1}\mathbf{x}^{\top}\mathbf{y}}$$
+
+
+2.15) Find $\mathbf{variance}[Y_i|x_i]=\mathbb{V}[Y_i|x_i]$ for $i \in [n]$ and deduce $\mathbf{variance}(\mathbf{y}|\mathbf{x})=\mathbb{V}(\mathbf{y}|\mathbf{x})$
+$$\mathbf{variance}[Y_i|x_i]=\mathbb{V}[Y_i|x_i] = \boxed{\sigma^2\mathit{I}_1} \\$$
+$$\mathbf{variance}(\mathbf{y}|\mathbf{x})=\mathbb{V}(\mathbf{y}|\mathbf{x})= \boxed{\sigma^2 \mathit{I}_n} \\$$
+
+
+2.16) Find $\mathbf{mean}(\hat{Y_i}|x_i)=\mathbb{E}[\hat{Y_i}|x_i]$ for $i \in [n]$ and deduce $\mathbf{mean}(\mathbf{\hat{y}}|\mathbf{x})=\mathbb{E}(\mathbf{\hat{y}}|\mathbf{x}) \\$
+$$\mathbf{mean}(\hat{Y_i}|x_i)=\mathbb{E}[\hat{Y_i}|x_i]= \boxed{x_i \theta}\\$$
+$$\mathbf{mean}(\mathbf{\hat{y}}|\mathbf{x})=\mathbb{E}(\mathbf{\hat{y}}|\mathbf{x})= \boxed{\mathbf{x}\theta}\\$$
+
+
+2.17) Find $\mathbf{variance}[\hat{Y_i}|x_i]$ for $i \in [n]$ and deduce $\mathbf{variance}(\mathbf{\hat{y}}|\mathbf{x})=\mathbb{V}(\mathbf{\hat{y}}|\mathbf{x})$
+$$\mathbf{variance}[\hat{Y_i}|x_i]=\mathbb{V}[\hat{Y_i}|x_i]= \boxed{\sigma^2 x_i (\mathbf{x}^{\top}\mathbf{x})^{-1} x_i^{\top}} \\$$
+$$\mathbf{variance}(\mathbf{\hat{y}}|\mathbf{x})=\mathbb{V}(\mathbf{\hat{y}}|\mathbf{x})= \boxed{\sigma^2 \mathbf{x} (\mathbf{x}^{\top}\mathbf{x})^{-1} \mathbf{x}^{\top}} \\$$
+
+
+2.18) Based on all the above, determine the distribution $\hat{\theta}$. 
+$$\boxed{\hat{\theta} \sim N(\theta, \sigma^2(\mathbf{x}^{\top}\mathbf{x})^{-1})} \\$$
+
+*Note for myself: $p+1=1 \Rightarrow p=0 \\$
+Only estimating one parameter.
+
+2.19) Based on all the above, determine the distribution $\hat{Y_i}$ given $x_i$ and deduce the distribution of $\mathbf{\hat{y}}$ given $\mathbf{x}$
+$$\hat{Y_i}|x_i: \boxed{\hat{Y_i}|x_i \sim N(x_i \theta, \sigma^2 x_i (\mathbf{x}^{\top}\mathbf{x})^{-1} x_i^{\top})} \\$$
+$$\mathbf{\hat{y}}|\mathbf{x}: \boxed{\mathbf{\hat{y}}|\mathbf{x} \sim N_n(\mathbf{x}\theta, \sigma^2 \mathbf{x} (\mathbf{x}^{\top}\mathbf{x})^{-1} \mathbf{x}^{\top})} \\$$ 
+
+
+2.20) Find the estimate $\hat{\sigma^2}$ of $\sigma^2$ 
+$$\hat{\sigma^2}=\frac{SSE(\hat{\theta})}{n-p-1}= \frac{\mathbf{Y}^{\top}(\mathbf{I}_n-\mathbf{H})\mathbf{Y}}{n-p-1} \\$$
+$$\frac{(n-p-1)\hat{\sigma}^2}{\sigma^2} \sim \chi_{n-p-1}^2 \\$$
+$$SSE(\hat{\theta})\sim \sigma^2 \chi^2_{n-p-1} \\$$
+$$= \frac{(\mathbf{y}-\theta \mathbf{x})^{\top}(\mathbf{y}- \theta \mathbf{x]})}{n-1}$$
+$$\Rightarrow \boxed{\frac{||\mathbf{y}-\theta \mathbf{x}||^2_2}{n-1}}$$
+
+
+\newpage 
+
+
+EXERCISE 3) Dealing with a linear regression analysis in $\mathbb{R}^2$ with $Y_i=\theta _1x_{i1}+\theta _2 x_{i2}+ \sigma Z_i$ where $Z_i \sim N(0,1)$ for $i=1,\dots,n$ and $\sigma \in \mathbb{R}_+^*$. Given: $\textbf{X}= \begin{bmatrix} 1 & -2 \\ -2 & 1 \\ 4 & 1  \end{bmatrix}$ and $\textbf{Y} =(-2,4,-3)^{\top} \\$
+
+3.1)  Compute the important $\mathbf{X}^{-1}\mathbf{X} \\$
+$$\mathbf{X}^{-1}\mathbf{X} = \begin{bmatrix} 1 & -2 & 4 \\ -2 & 1 & 1 \end{bmatrix}\begin{bmatrix} 1 & -2 \\ -2 & 1 \\ 4 & 1  \end{bmatrix} = \begin{bmatrix} (1)(1)+(-2)(-2)+(4)(4) & (1)(-2)+(-2)(1)+(4)(1) \\ (-2)(1)+(1)(-2)+(1)(4) & (-2)(-2)+(1)(1)+(1)(1) \end{bmatrix} = \boxed{\begin{bmatrix} 21 & 0 \\ 0 & 6 \end{bmatrix}} \\$$
+
+
+3.2) $\boxed{\textbf{X}^{\top}\textbf{X} \text{ is a square matrix that can be reduced to an identity matrix.}} \\$
+
+
+3.3) Find $(\textbf{X}^{\top}\textbf{X})^{-1}$ in the most straightforward way             
+$$(\textbf{X}^{\top}\textbf{X})^{-1} = \begin{bmatrix} 21 & 0 \\ 0 & 6 \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} = \boxed{\begin{bmatrix} \frac{1}{21} & 0 \\ 0 & \frac{1}{6} \end{bmatrix}}\\$$
+**NOTE: I'm not multiplying the two matrices, I'm just trying to represent the process of reducing to row echelon form.         
+
+
+3.4) Compute  $\hat{\theta}=(\textbf{X}^{\top}\textbf{X})^{-1}\textbf{X}^{\top}\textbf{Y} \\$
+$$\mathbf{X}^{\top}\mathbf{Y}=\begin{bmatrix} 1 & -2 & 4 \\ -2 & 1 & 1 \end{bmatrix}\begin{bmatrix} -5 \\ 4 \\ -3  \end{bmatrix} = \begin{bmatrix} (1)(-5)+(-2)(4)+(4)(-3) \\ (-2)(-5)+(1)(4)+(1)(-3) \end{bmatrix} =\begin{bmatrix} -25 \\11 \end{bmatrix} \\$$
+
+$$\hat{\theta}= \begin{bmatrix} \frac{1}{21} & 0 \\ 0 & \frac{1}{6} \end{bmatrix} \begin{bmatrix} -25 \\ 11 \end{bmatrix} = \begin{bmatrix} (\frac{1}{21})(-25)+0 \\ 0+\frac{1}{6}(11) \end{bmatrix} = \boxed{\begin{bmatrix} \frac{-25}{21} \\ \\ \frac{11}{6} \end{bmatrix}} \\$$
+
+
+3.5) Compute the vector $\mathbf{\hat{Y}}=\mathbf{X} \theta \\$
+$$\mathbf{\hat{Y}}=  \begin{bmatrix} 1 & -2 \\ -2 & 1 \\ 4 & 1  \end{bmatrix} \begin{bmatrix} \frac{-25}{21} \\ \\ \frac{11}{6} \end{bmatrix} = \boxed{\begin{bmatrix} \frac{-34}{7}\\ \\ \frac{59}{14} \\ \\ \frac{-41}{14} \end{bmatrix}} \\$$
+
+3.6) Compute the vector $\mathbf{e}=\mathbf{Y}-\mathbf{\hat{Y}} \\$
+$$\mathbf{e}= \mathbf{Y}-\mathbf{\hat{Y}} = \begin{bmatrix} -5 \\ 4 \\ -3  \end{bmatrix}- \begin{bmatrix} \frac{-34}{7} \\ \\ \frac{59}{14} \\ \\ \frac{-41}{14} \end{bmatrix} = \boxed{\begin{bmatrix} \frac{-1}{7} \\ \\  \frac{-3}{14} \\ \\ \frac{-1}{14} \end{bmatrix}} \\$$
+
+3.7) Find the value of $SSE(\hat{\theta})=\mathbf{e}^{\top}\mathbf{e} \\$
+$$SSE(\hat{\theta}) = \mathbf{e}^{\top}\mathbf{e} =\begin{bmatrix} \frac{-1}{7} & \frac{-3}{14} & \frac{-1}{14} \end{bmatrix} \begin{bmatrix} \frac{-1}{7} \\ \\  \frac{-3}{14} \\ \\ \frac{-1}{14} \end{bmatrix} = \boxed{\begin{bmatrix} \frac{1}{14}\end{bmatrix}}$$
+
+3.8) Find the estimate $\hat{\sigma^2}=\frac{SSE(\hat{\theta})}{n-2} \\$
+$$\hat{\sigma^2} = \frac{SSE(\hat{\theta})}{n-2} = \frac{\frac{1}{14}}{3-2} = \boxed{\frac{1}{14}}$$
+
+
+3.9) Find and write down $\mathbf{\text{Variance}}(\hat{\theta})=\hat{\theta^2}(\mathbf{X}^{\top}\mathbf{X})^{-1} \\$ 
+$$\mathbf{\text{Variance}}(\hat{\theta})= \frac{1}{14} \begin{bmatrix} \frac{1}{21} & 0 \\ 0 & \frac{1}{6} \end{bmatrix} = \boxed{\begin{bmatrix} \frac{1}{294} & 0 \\ 0 & \frac{1}{84} \end{bmatrix}} \\$$
+
+
+3.10) Write $\mathbf{X}^{-1}\mathbf{X}$ as a function of the identity matrix when $\begin{bmatrix} 1 & -2 \\ 2 & 1 \end{bmatrix} \\$
+$$\mathbf{X}^{-1}\mathbf{X}= \begin{bmatrix} 1 & 2 \\ -2 & 1 \end{bmatrix} \begin{bmatrix} 1 & -2 \\ 2 & 1 \end{bmatrix} = \begin{bmatrix} 5 & 0 \\ 0 & 5 \end{bmatrix} = 5 \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} = \boxed{5 \mathit{I}_2}$$
+
+
+
+
+
+
+
+
+
+
+
+

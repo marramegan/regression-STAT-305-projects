@@ -1,0 +1,729 @@
+---
+title: "Marra Midterm"
+output:
+  pdf_document: default
+  html_document: default
+date: "2022-11-03"
+---
+
+
+EXERCISE 1:       
+We are given an iid sample $\{(\textbf{x}_1,y_1), \cdots, (\textbf{x}_n,y_n)\}$ where $X_i = (X_{i1},X_{i2})^\top$
+and $\textbf{Y}_i \in \mathbb{R}$. We then consider the multiple linear regression model given by
+$$
+Y_i = \beta_0 + \beta_1 X_{i1} + \beta_2 X_{i2} + \beta_3 X_{i1}^2 + \beta_4 X_{i1} X_{i2}+\sigma Z_i,
+$$
+where $Z_i \sim N(0,1)$. Using the ordinary least squares method, we obtain the following estimates of the coefficients, namely
+$$
+\hat{\beta}_0 = 0.904,\, \,  \hat{\beta}_1 = 2.457,\,\, \hat{\beta}_2 = -3.084,\,\, \hat{\beta}_3 = 0.168, \,\, \hat{\beta}_4 = 1.544
+$$
+so that ($\hat{\beta}$ here is bolded) $\hat{\bf{\beta}}=(\textbf{X}^{\top}\textbf{X})^{-1}\textbf{X}^{\top}\textbf{Y}=(\hat{\beta}_0, \hat{\beta}_1, \hat{\beta}_2, \hat{\beta}_3, \hat{\beta}_4)^{\top}=(0.904, 2.457, -3.084, 0.168, 1.544)^{\top}$
+The residual sum of squares is also found to be $SSE=56.5$ with $df(SSE)=20$ degrees of freedom.
+The variance-covariance matrix of the es
+$$
+\mathbb{V}(\hat{\bf{\beta}}) = \hat{\sigma^2}(\bf{X}^\top\bf{X})^{-1} = \begin{bmatrix}
+0.180  & 0.018  & 0.013  & -0.077 & -0.015 \\
+0.018  & 0.164 & -0.002 & -0.050 & 0.018 \\
+0.013  & -0.002 & 0.053 & -0.002 & -0.014 \\
+-0.077  & -0.050 & -0.002 &  0.097 & 0.014 \\
+-0.015  & 0.018 & -0.014 &  0.014 & 0.149 \\
+\end{bmatrix}
+$$
+It is also known that the correlation matrix between $(Y,X_1,X_2)$ is given by
+$$
+R = \left[\begin{array}{rrr}
+1.000 & 0.393 & -0.828 \\
+0.393 & 1.000  & 0.014 \\
+-0.828 & 0.014  & 1.000 \\
+\end{array}\right]
+$$
+We also given leverages, Cooks's distances and externally studentized residuals for $5$ observations, in the following table.
+
+1.1) Compute the fit $\hat{f}(x_0)=\widehat{\mu(x_0)}$ at $x_0 = \left(2,-\frac{1}{2}\right) \\$
+$$\hat{f}(\mathbf{x}_0)=\hat{\mu(x_0)}=\hat{\beta}_0+\hat{\beta}_1 X_{i1}+\beta_2 X_{i2}+ \beta_3 X_{i1}^2 + \beta_4 X_{i1} X_{i2}+\sigma Z_i \\$$
+$$\hat{f}(\mathbf{x}_0)=\widehat{\mu(x_0)}=0.904 + 2.457 (2) -3.084 (-\frac{1}{2}) + 0.168 (2)^2 + 1.544 (2)(-\frac{1}{2}) \\$$
+$$\boxed{\hat{f}(\mathbf{x}_0)= 6.488} \\$$
+```{r}
+0.904+(2.457*2)-(3.084*(-1/2))+(0.168*4)+(1.544*-1)
+```
+
+1.2) How many observations were used in this study? 
+$$p=4 \text{ beta parameters} \\$$
+$$df(SSE)=n-p-1 \\$$
+$$20=n-4-1 \\$$
+$$n=\boxed{25}$$
+
+1.3) Test the significance of $\beta_3$ at $\alpha=0.05 \\$
+$\\$
+Since $t_3=0.539<2.086=t_{20,0.025}$, we cannot reject $H_0$. Thus, conclude the third variable is a statistically insignificant predictor of the response.      
+
+$$H_0: \beta_3=0 \\$$
+$$H_a: \beta_3 \neq 0 \\$$
+$$t_3 = \frac{\hat{\beta}_3}{ese(\hat{\beta}_3)}=\frac{0.168}{\sqrt{0.097}}=\frac{0.168}{0.3114482}=0.5394155$$
+```{r}
+sqrt(0.097)
+
+0.168/0.3114482
+
+qt(0.975, df=20)
+```
+
+        
+
+**Notes for myself:       
+$t_j = \frac{\hat{\beta}_j}{ese(\hat{\beta}_j)} \\$
+$ese(\hat{\beta}_j)=s \sqrt{(\mathbf{X}^{\top}\mathbf{X})^{-1}_{jj}} \\$
+$s=\sqrt{\frac{SSE}{n-p-1}} \\$
+
+1.4) Based on the correlation matrix, is there any evidence of multi-collinearity?     
+$\\$
+According to the correlation matrix, $r_{12}=\widehat{cor}(X_1, X_2)=0.014$, which is a very small correlation value. Thus, indicating there is no evidence of multi-collinearity.              
+$\\$
+
+1.5) Compute the standard error of the fit $\hat{f}(x_0)= \hat{\mu (x_0)} \\$
+$$ese(\hat{\mu}(x_0))= \sqrt{\hat{\sigma}^2 \tilde{\mathbf{x}}^{\top}_0 (\mathbf{X}^{\top}\mathbf{X})^{-1} \tilde{\mathbf{x}_0}} = \sqrt{\tilde{\mathbf{x}}^{\top}_0 \mathbb{V}(\hat{\beta}) \tilde{\mathbf{x}_0}} \\$$
+$$= \sqrt{ \begin{bmatrix} 1 & 2 & -\frac{1}{2} & 4 & -1 \end{bmatrix} \begin{bmatrix}
+0.180  & 0.018  & 0.013  & -0.077 & -0.015 \\
+0.018  & 0.164 & -0.002 & -0.050 & 0.018 \\
+0.013  & -0.002 & 0.053 & -0.002 & -0.014 \\
+-0.077  & -0.050 & -0.002 &  0.097 & 0.014 \\
+-0.015  & 0.018 & -0.014 &  0.014 & 0.149 \\
+\end{bmatrix} \begin{bmatrix} 1 \\ 2 \\ -\frac{1}{2} \\ 4 \\ -1 \end{bmatrix}}$$
+$$= \boxed{1.018} \\$$
+
+```{r}
+sqrt(1.03725)
+```
+
+
+1.6) Compute the double-sided $95\%$ margin of error on $\hat{f}(x_0)=\hat{\mu(x_0)} \\$
+$$E_{95\%}(\hat{\mu}(\mathbf{x}_0))=\hat{\mu}(\mathbf{x}_0) \times t_{20, 0.025}= 1.018455 \times 2.085963 = \boxed{2.124} \\$$
+```{r}
+1.018455*2.085963
+```
+
+1.7) Compute a $95\%$ confidence interval for the true but unknown $\mu(x_0) = \mathbb{E}[Y_0|x_0] \\$
+$$CI_{95\%}(\mu (\mathbf{x}_0))=\hat{\mu}(\mathbf{x}_0) \pm E_{95\%}(\hat{\mu}(\mathbf{x}_0))= 6.488 \pm 2.124459 = \boxed{(4.364, 8.612)} \\$$
+```{r}
+6.488+2.124459
+6.488-2.124459
+```
+
+1.8) What is the estimate of the noise variance in this case?       
+$$\widehat{\sigma^2}=\frac{SSE}{df(SSE)}=\frac{56.5}{20}=\boxed{2.825} \\$$
+```{r}
+56.5/20
+```
+
+
+1.9) Using the fact that $SST=675.16$, compute the value of the $F$ statistics in this case.     
+$$F=\frac{\frac{(SST-SSE)}{p}}{\frac{SSE}{n-p-1}}= \frac{\frac{(675.16-56.5)}{4}}{\frac{56.5}{20}}=\frac{154.665}{2.825}= \boxed{54.749} \\$$
+```{r}
+(675.16-56.5)/4
+
+56.5/20
+
+154.665/2.825
+```
+
+
+1.10) Without any calculation, provide a good guess for the pvalue of the overall regression test.    
+$\\$
+An observed F statistic of 109.4973 is so large that with 4 degrees of freedom on the numerator and 20 in the denominator, the corresponding Pvalue is approximately 0. Thus, we can conclude the regression is significant since any significance level chosen would be greater than the p-value. 
+
+
+1.11) In practice one needs to compare a succession of models using the formula
+$$
+F = \frac{\frac{SSE(M_{reduced})-SSE(M_{full})}{df(SSE(M_{reduced}))-df(SSE(M_{full}))}}{\frac{SSE(M_{full})}{df(SSE(M_{full}))}}
+$$
+where $M_{full}$ is the model with all the $p$ predictor variables provided, and $M_{reduced}$ is the model with less than $p$ variables. According to this, what do you think is $M_{null}$? Write down the equation of $M_{null} \\$
+
+$$M_{null} = \text{the model with no variable at all (all predictor variables are insignificant)} \\$$
+$$\boxed{M_{null}: Y_i=\beta_0 + \epsilon_i}$$
+Intuition is: 
+$H_0: \beta_j =0$ 
+
+1.12) What is the residual sum of squares of $M_{null}$?
+$$RSS(M_{null}) = SST(M_{null}) = \boxed{675.16} $$
+
+$$SSE(M_{null})= \sum (Y_i - \hat{Y})^2$$
+$$\hat{Y} = \hat{\beta}_0 + \epsilon \text{ (Don't need the noise term; estimating as 0})$$
+$$\Rightarrow (Y_i - \hat{\beta}_0)^2$$
+$$\hat{\beta}_0 = \bar{Y} + \hat{\beta}_1 X \text{ (Where } \hat{\beta}_1 X \text{ goes to 0 because we're dealing with the null model)}$$
+$$SST = \sum (Y_i - \bar{Y})^2 = SSR = \sum ( \hat{Y} - \bar{Y})^2$$
+
+
+***Other Notes (Week 7, slide 14 + Week 2, slide 4):      
+$RSS(M_{null}) = SSE(M_{null}) = \sum^n_{i=1} (y_i - \tilde{x}_i^{\top} \hat{\beta})^2 = \sum^p_{i=0} (y_i - \beta_1 x_{i}^j)^2 =\sum_{i=1}^n e_i^2 \\$
+
+
+
+1.13) How many degrees of freedom are there in $SSE(M_{null})$?
+
+$p=0$ since we are testing a model with no variables, i.e. 0 parameters
+$n=25$  
+$$df(SSE(M_{null}))=n-p-1 \\$$
+$$df(SSE(M_{null}))= 25-0-1 \\$$
+$$df(SSE(M_{null}))= \boxed{24} \\$$
+
+1.14) Compute the percentage of variation in the response explained by this model. 
+$$R^2=1-\frac{SSE}{SST}=1- \left( \frac{56.5}{675.16} \right) = \boxed{0.9163}$$
+
+
+1.15) The so-called adjusted $R^2$ is given by
+$$R_{adj}^2 = 1- \frac{SSE/df(SSE)}{SST/df(SST)}$$
+Compute the value of $R_{adj}^2$ for this data set.
+$$R_{adj}^2 = 1- \frac{\frac{SSE}{n-2}}{\frac{SST}{n-1}}= 1- \frac{\frac{56.5}{20}}{\frac{675.16}{24}}= 1 - \frac{2.825}{28.13167} = 1 - 0.1004206 = \boxed{0.8995794}$$
+
+
+
+
+1.16) Comment on the Cook's distance of each of the above five special observations.        
+$$D_i > \frac{4}{n-p-1}=\frac{4}{20}=0.2 \\$$
+If the cutoff is 0.2, observation 1 has an unusually large Cook's distance value ($D_i^{(obs 1)} = 0.407$). Therefore, this point should be considered influential and must be investigated further.      
+
+       
+1.17) Comment on the leverage of each of the above five special observations.           
+$$h_{ii} > \frac{2(p+1)}{n}=\frac{2(4+1)}{25}=\frac{10}{25}= 0.4\\$$
+```{r}
+10/25
+```
+
+If the cutoff is 0.4, observations 3 and 4 (possibly observation 1) have unusually large leverage ($h_{ii}^{(obs 1)}=0.400,$ $h_{ii}^{(obs 3)}=0.483,$ $h_{ii}^{(obs 4)}=0.485$). Therefore, they should be considered influential and must be investigated.          
+          
+1.18) Comment on the externally studentized residual of each of the above five special observations.
+$$|r_i|> t_{20, 0.025}=2.085963 \\$$
+If the cutoff is 2.086, observation 2 has an unusually large studentized residual ($|r_{i}^{(obs 2)}|=2.736$). Therefore, it should be considered influential and must be investigated. 
+
+
+1.19) Based on the output below, discuss the relatedness of the noise terms
+
+$$\begin{bmatrix} \text{lag} & \text{Autocorrelation} & \text{D-W Statistics} & \text{p-value} \\ 1 & -0.26282 & 2.501682 & 0.218 \end{bmatrix}$$
+$$\\ \text{Alternative hypothesis: rho != 0}$$
+Based on the output above, with a $\text{p-value}=0.218 > \alpha =0.05$, we can conclude that the noise terms are most likely not autocorrelated.      
+
+
+1.20) Based on the output below, comment on the assumption of constant noise variance
+$$\text{Non-constant Variance Score Test}$$
+$$\text{Variance formula:} \sim \text{fitted.values}$$
+$$\begin{bmatrix} \text{Chisquare } = 0.67861 & Df = 1 & p=0.4100658 \end{bmatrix}$$
+Since the $\text{p-value} = 0.4100658 > \alpha = 0.05$, the test fails to reject the null hypothesis. Therefore, it is plausible to assume that the noise variance is constant. 
+
+
+
+1.21) Is it reasonable in this case to assume that the noise has a normal distribution.
+$$\text{Shapiro-Wilk normality test}$$
+$$\begin{bmatrix} W=0.977 & \text{p-value}=0.8208 \end{bmatrix}$$
+Since the $\text{p-value} = 0.8208 > \alpha = 0.05$, the test fails to reject the null hypothesis. Therefore, it is plausible to assume that the noise follows a normal distribution. 
+
+
+
+1.22) Generate the $90\%$ prediction intervals for the response value at $x_0=\left(2,-\frac{1}{2}\right)^\top \\$
+
+$$CI_{90 \%} = \left( \widehat{\mu(\mathbf{x}_0)} - t_{df, \alpha /2} \times pese(\widehat{\mu(\mathbf{x}_0)}), \widehat{\mu(\mathbf{x}_0)} + t_{df, \alpha /2} \times pese(\widehat{\mu(\mathbf{x}_0)})  \right)$$
+
+$$CI_{90 \%} = \left( \mathbf{x}_0^{\top} \hat{\beta} \pm t_{n-p-1, \alpha / 2} \times pese(\hat{Y}(\mathbf{x}_0)) \right)$$
+
+
+$$= \left( 6.488 - 1.724718 (1.965260797), 6.488 + 1.724718(1.965260797)  \right)$$
+$$90\% \text{ prediction interval: } (3.098479329, 9.877520671) = \boxed{(3.098, 9.878)}$$
+***Work (Week 7, slides 22-25):  
+$$\mathbf{X}^{\top}(\mathbf{X}^{\top}\mathbf{X})^{-1} \mathbf{X} = \sqrt{\begin{bmatrix} 1 & 2 & - \frac{1}{2}& 4 & -1 \end{bmatrix} \begin{bmatrix}
+0.180  & 0.018  & 0.013  & -0.077 & -0.015 \\
+0.018  & 0.164 & -0.002 & -0.050 & 0.018 \\
+0.013  & -0.002 & 0.053 & -0.002 & -0.014 \\
+-0.077  & -0.050 & -0.002 &  0.097 & 0.014 \\
+-0.015  & 0.018 & -0.014 &  0.014 & 0.149 \\
+\end{bmatrix} \begin{bmatrix} 1 \\ 2 \\ - \frac{1}{2} \\ 4 \\ -1 \end{bmatrix}}$$
+$$= \begin{bmatrix} 1.03725 \end{bmatrix}$$
+$$\left( \text{Need to take out the } \frac{1}{\hat{\sigma}^2} \text{ from } \mathbb{V}(\hat{\beta}) \right)$$
+$$= \frac{1}{2.825} \begin{bmatrix} 1.03725 \end{bmatrix} = \begin{bmatrix} 0.3671681416 \end{bmatrix}$$
+
+$$s=\sqrt{\frac{SSE}{n-p-1}} = \sqrt{\frac{56.5}{20}}=1.680773631$$
+
+$$pese(\hat{Y}(\mathbf{x}_0))= s \sqrt{1 + \mathbf{X}^{\top}(\mathbf{X}^{\top}\mathbf{X})^{-1} \mathbf{X}} = 1.681 \sqrt{ 1 + \left(  \begin{bmatrix}
+0.367168 \end{bmatrix} \right) } = 1.965260797$$
+
+
+
+```{r}
+# sample estimate +\- (t-multiplier * predicted estimated standard error)
+
+# New t-multipiler for alpha=0.10:
+qt(.95, df=20)
+
+6.488 + (1.724718*2.22511209)
+6.488 - (1.724718*2.22511209)
+```
+
+
+1.23) Construct a $90\%$ confidence interval for $\beta_3 \\$
+
+$$CI_{90 \%} = \left( \hat{\beta}_3 - t_{df, \alpha /2} \times ese(\hat{\beta}_3), \hat{\beta}_3 + t_{df, \alpha /2} \times ese(\hat{\beta}_3)  \right)$$
+$$= \left( 0.168 - t_{20, 0.05} \times ese(\hat{\beta}_3), 0.168 + t_{20, 0.05} \times ese(\hat{\beta}_3)  \right)$$
+$$= \left( 0.168 - 1.725(0.31144823), 0.168 + 1.725(0.31144823)  \right)$$
+$$90\% \text{ confidence interval for } \beta_3 : \boxed{(-0.369,0.705)}$$
+```{r}
+qt(0.95,20)
+0.168+(1.724718*0.31144823)
+0.168-(1.724718*0.31144823)
+```
+
+***Week 2 PowerPoint       
+$\hat{\sigma}^2 = s^2 = \frac{SSE}{n-2}= \frac{56.5}{20}= 2.825 \\$
+$\sigma = \sqrt{2.825} = 1.680774 \\$
+$\mathbb{V}[\hat{\beta_3}]= \frac{\sigma}{S_{XX}}=0.097 \\$
+$t_{3}=\frac{\hat{\beta}_3}{ese(\hat{\beta}_3)} \Rightarrow ese(\hat{\beta}_3) = \sqrt{0.0973913} = 0.31144823\\$
+
+
+
+1.24) Construct a $95\%$ confidence interval for $5\beta_4 \\$
+$$CI_{95 \%} = \left( 5 \hat{\beta}_4 - t_{df, \alpha /2} \times ese(5 \hat{\beta}_4), 5 \hat{\beta}_4 + t_{df, \alpha /2} \times ese( 5 \hat{\beta}_4)  \right)$$
+$$= \left( 5(1.544) - t_{20, 0.025} \times 5(\sqrt{0.149}), 5(1.544) + t_{20, 0.025} \times 5(\sqrt{0.149})  \right)$$
+$$= \left( 7.72 - 2.086(1.93), 7.72 + 2.086(1.93)  \right)$$
+$$95\% \text{ confidence interval for } 5 \beta_4 : \boxed{(3.694, 11.746)}$$
+```{r}
+qt(0.975,20)
+7.72+(2.085963*(5*sqrt(0.149)))
+7.72-(2.085963*(5*sqrt(0.149)))
+```
+
+
+1.25) Comment on the number of df of the externally studentized residual for observation $10. \\$
+$\\$
+Externally studentized residuals are known to follow the t-distribution with $n-p-2$ degrees of freedom.      
+$$n-p-2 = 25-4-2 = \boxed{19 \text{ degrees of freedom}}$$
+
+
+***Week 8 PowerPoint (slides 12-14)      
+
+
+
+
+\newpage
+
+
+EXERCISE 2: 
+Consider the R Package library(car). If you do not have it on your computer, you then must install it.
+install.packages('car'). In this car, there is a dataset called Prestige, and this exercise considers
+six linear regression model explorations around this dataset.  
+
+1) The first model in our collection is specified as follows $$M_1: \textbf{prestige} = \beta_0^{(1)} + \beta_1^{(1)}(\textbf{education})+ \epsilon^{(1)} \\$$
+
+2) The second model is given by $$M_2: \textbf{prestige} = \beta_0^{(2)} + \beta_1^{(2)}(\textbf{income})+ \epsilon^{(2)} \\$$
+
+3) The third model considered here has the following form:
+$$M_3: \textbf{prestige} = \beta_0^{(3)} + \beta_1^{(3)}(\textbf{education})+ \beta_2^{(3)}(\textbf{income})+\epsilon^{(3)} \\$$
+
+4) The fourth model in our collection is $$M_4: \textbf{prestige} = \beta_0^{(4)} + \beta_1^{(4)}(\textbf{education})+ \beta_2^{(4)}(\textbf{income})+ \beta_3^{(4)}(\textbf{income})^2+\epsilon^{(4)} \\$$
+
+5) Our fifth model in this case is specified as follows: $$M_5: \textbf{prestige} = \beta_0^{(5)} + \beta_1^{(5)}(\textbf{education})+ \beta_2^{(5)}(\textbf{income})+ \beta_3^{(5)}(\textbf{census})+\epsilon^{(5)} \\$$
+
+6) Our final model to be considered here is given by $$M_6: \textbf{prestige} = \beta_0^{(6)} + \beta_1^{(6)}(\textbf{education})+ \beta_2^{(6)}(\textbf{census})+\epsilon^{(6)} \\$$
+
+For this exercise, our finite model space $\mathbf{M}=\{M_1, M_2, M_3, M_4, M_5, M_6 \}$. For each $M_j \in \mathbf{M}$, where $j=1,2,3,4,5,6$, we will compute various model scores. For any given model scores. For any $M_j \in \mathbf{M}$, the PRESS statistic will be given by $$PRESS(M_j)=\sum_{i-1}^n \left( \frac{e_i(M_j)}{1-h_{ii}(M_j)}\right)^2$$
+where $e_i(M_j)$ and $h_i(M_j)$ are respectively the residual and the leverage of observation i, yielded by model $M_j$. The residual observation $i$ is given by $e_i(M_j)=y_i-\hat{y_i}(M_j)=y_i-\hat{f}_{M_j}(\mathbf{x}_i)$ where $\hat{y}_i(M_j)=\hat{f}_{M_j}(\mathbf{x}_i)$ is the response predicted by model $M_j$ on $\mathbf{x}_i$. Of course,
+$$SSE(M_j)=\sum_{i=1}^n (y_i-\hat{y}_i(M_j))^2=\sum_{i=1}^n (y_i-\hat{f}_{(M_j)}(\mathbf{x}_i))^2.$$
+Also, using $|M_j|=\text{complexity}(M_j)=\text{size}(M_j)$ to denote the number of regression parameters in $M_j$, we have the following basic model scores, namely
+$$R^2(M_j)=1-\frac{SSE(M_j)}{SST} \text{ and } R_{adj}^2(M_j)=1- \left[ \frac{n-1}{n-|M_j|}\right] \left[ \frac{SSE(M_j)}{SST} \right],$$ 
+where $SST=SSE(M_j)+SSE(M_j)$ is the total variation in the response variable $Y$. Let $M_F$ denote the full model, that is, the model with all the available variables, let
+$$MSE(M_j)=\frac{SSE(M_F)}{df(SSE(M_j))}$$
+then the Mallow's $C_p$ score of $M_j$ is given by 
+$$C_p(M_j)=\frac{SSE(M_F)}{MSE(M_F)}-(n-2|M_j|).$$
+The Akaike Information Criterion (AIC) of model $M_j$ is given by 
+$$AIC(M_j)=nlog \left( \frac{SSE(M_j)}{n} \right) + |M_j|log(n) = -2 \text{LogLikelihood}(M_j) + |M_j| log(n).$$
+For now, you may obtain the loglikelihood of $M_j$ using the steps described later. Examples of the above computations in R, are given by.
+
+```{r}
+# library(car); library(MPV); data(Prestige); n <- nrow(Prestige);
+
+# xy <- Prestige[,-ncol(Prestige)] # Eliminate the last column
+
+# lm.M <- lm(prestige~women, data=xy)
+
+# SSE.M <- sum((resid(lm.xy))^2) # Also SSE.M <- (n-2)*(summary(lm.M)$sigma)^2
+
+# PRESS.M <- PRESS(lm.M)
+
+# Rsquared.M <- summary(lm.M)$r.squared
+
+# Rsquared.adj.M <- summary(lm.M)$adj.r.squared
+
+# logL.M <- logLik(lm.M)
+
+# AIC.M <- AIC(lm.M)
+
+# BIC.M <- BIC(lm.M)
+
+# lm.M.F <- lm(prestige~., data=xy);
+
+# MSE.M.F <- (summary(lm.M.F)$sigma)^2
+```
+
+```{r}
+library(car)
+library(MPV)
+library(olsrr)
+```
+
+2.1) Fit the full model $M_F$ and compute both $SSE(M_F)$ and $MSE(M_F). \\$
+```{r}
+data(Prestige)
+n <- nrow(Prestige)
+n
+
+xy <- Prestige[, -ncol(Prestige)]
+
+lm.full <- lm(Prestige$prestige~., data=xy) 
+summary(lm.full)
+```
+
+```{r}
+# SSE
+SSE.full <- sum((fitted(lm.full)-Prestige$prestige)^2)
+SSE.full
+
+```
+$$SSE(M_F)= \boxed{5967.516}$$
+```{r}
+# MSE 
+MSE.full <- (summary(lm.full)$sigma)^2
+MSE.full
+```
+
+$$MSE(M_F)= \boxed{61.521}$$
+2.2) Fit $M_j$ using the Least Squares Principle, and compute      
+(i) $SSE(M_j) \\$
+(ii) $R^2(M_j) \\$
+(iii) $R_{adj}^2(M_j) \\$
+(iv) $PRESS(M_j) \\$
+(v) $AIC(M_j) \\$
+(vi) $BIC(M_j) \\$
+(vii) $\text{LogLikelihood} (M_j) \\$
+(viii) $C_p(M_j) \\$
+
+
+```{r}
+# Fitting Models
+lm.M1 <- lm(Prestige$prestige~Prestige$education, data=xy)
+lm.M2 <- lm(Prestige$prestige~Prestige$income, data=xy)
+lm.M3 <- lm(Prestige$prestige~Prestige$education+ Prestige$income, data=xy)
+lm.M4 <- lm(Prestige$prestige~Prestige$education+Prestige$income+I((Prestige$income)^2), data=xy)
+lm.M5 <- lm(Prestige$prestige~Prestige$education+ Prestige$income+Prestige$census, data=xy)
+lm.M6 <- lm(Prestige$prestige~Prestige$education+Prestige$census, data=xy)
+
+```
+
+```{r}
+# SSE
+SSE.M1 <- sum((fitted(lm.M1)-Prestige$prestige)^2)
+SSE.M2 <- sum((fitted(lm.M2)-Prestige$prestige)^2)
+SSE.M3 <- sum((fitted(lm.M3)-Prestige$prestige)^2)
+SSE.M4 <- sum((fitted(lm.M4)-Prestige$prestige)^2)
+SSE.M5 <- sum((fitted(lm.M5)-Prestige$prestige)^2)
+SSE.M6 <- sum((fitted(lm.M6)-Prestige$prestige)^2)
+SSE.M1
+SSE.M2
+SSE.M3
+SSE.M4
+SSE.M5
+SSE.M6
+```
+
+
+```{r}
+# R^2
+Rsquared.M1 <- summary(lm.M1)$r.squared
+Rsquared.M2 <- summary(lm.M2)$r.squared
+Rsquared.M3 <- summary(lm.M3)$r.squared
+Rsquared.M4 <- summary(lm.M4)$r.squared
+Rsquared.M5 <- summary(lm.M5)$r.squared
+Rsquared.M6 <- summary(lm.M6)$r.squared
+Rsquared.M1
+Rsquared.M2
+Rsquared.M3
+Rsquared.M4
+Rsquared.M5
+Rsquared.M6
+```
+
+```{r}
+# Adj R^2
+Rsquared.adj.M1 <- summary(lm.M1)$adj.r.squared
+Rsquared.adj.M2 <- summary(lm.M2)$adj.r.squared
+Rsquared.adj.M3 <- summary(lm.M3)$adj.r.squared
+Rsquared.adj.M4 <- summary(lm.M4)$adj.r.squared
+Rsquared.adj.M5 <- summary(lm.M5)$adj.r.squared
+Rsquared.adj.M6 <- summary(lm.M6)$adj.r.squared
+Rsquared.adj.M1
+Rsquared.adj.M2
+Rsquared.adj.M3
+Rsquared.adj.M4
+Rsquared.adj.M5
+Rsquared.adj.M6
+```
+
+```{r}
+# PRESS
+PRESS.M1 <- PRESS(lm.M1)
+PRESS.M2 <- PRESS(lm.M2)
+PRESS.M3 <- PRESS(lm.M3)
+PRESS.M4 <- PRESS(lm.M4)
+PRESS.M5 <- PRESS(lm.M5)
+PRESS.M6 <- PRESS(lm.M6)
+PRESS.M1
+PRESS.M2
+PRESS.M3
+PRESS.M4
+PRESS.M5
+PRESS.M6
+```
+
+
+```{r}
+# AIC
+AIC.M1 <- AIC(lm.M1)
+AIC.M2 <- AIC(lm.M2)
+AIC.M3 <- AIC(lm.M3)
+AIC.M4 <- AIC(lm.M4)
+AIC.M5 <- AIC(lm.M5)
+AIC.M6 <- AIC(lm.M6)
+AIC.M1
+AIC.M2
+AIC.M3
+AIC.M4
+AIC.M5
+AIC.M6
+```
+
+
+```{r}
+# BIC
+BIC.M1 <- BIC(lm.M1)
+BIC.M2 <- BIC(lm.M2)
+BIC.M3<- BIC(lm.M3)
+BIC.M4 <- BIC(lm.M4)
+BIC.M5 <- BIC(lm.M5)
+BIC.M6 <- BIC(lm.M6)
+BIC.M1
+BIC.M2
+BIC.M3
+BIC.M4
+BIC.M5
+BIC.M6
+```
+
+```{r}
+# LogLikelihood
+logL.M1 <- logLik(lm.M1)
+logL.M2 <- logLik(lm.M2)
+logL.M3 <- logLik(lm.M3)
+logL.M4 <- logLik(lm.M4)
+logL.M5 <- logLik(lm.M5)
+logL.M6 <- logLik(lm.M6)
+logL.M1
+logL.M2
+logL.M3
+logL.M4
+logL.M5
+logL.M6
+```
+
+```{r}
+# Cp
+ols_mallows_cp(lm.M1, lm.full)
+ols_mallows_cp(lm.M2, lm.full)
+ols_mallows_cp(lm.M3, lm.full)
+ols_mallows_cp(lm.M4, lm.full)
+ols_mallows_cp(lm.M5, lm.full)
+ols_mallows_cp(lm.M6, lm.full)
+```
+
+
+2.3) Fill up Table (1) with all values of the model scores obtained earlier. 
+
+$$\begin{tabular}{|c|c|c|c|c|c|c|c|r|}
+\hline
+   & SSE & Rsquared & Rsquared.adj & Cp & PRESS & LogL & AIC & BIC \\
+\hline
+M.1 & 8286.99 & 0.723 & 0.720 & 36.702 & 8598.021 & -369.003 (df=3) & 744.005 & 751.880 \\
+\hline
+M.2 & 14616.17 & 0.511 & 0.506 & 139.581 & 15759.71 & -397.942 (df=3) & 801.8844 & 809.759  \\
+\hline
+M.3 & 6038.851 & 0.798 & 0.794 & 2.160 & 6486.836 & -352.863 (df=4) & 713.7251 & 724.225   \\
+\hline
+M.4 & 5308.047 & 0.822 & 0.817 & -7.719 & 5733.375 & -346.284 (df=5) & 702.5681 & 715.693  \\
+\hline
+M.5 & 5967.793 & 0.800 & 0.794 & 3.005 & 6490.05 & -352.259 (df=5) & 714.518 & 727.643   \\
+\hline
+M.6 & 7892.225 & 0.736 & 0.731 & 32.286 & 8347.392 & -366.513 (df=4) & 741.023 & 751.527   \\
+\hline
+\end{tabular}$$
+
+2.4) Consider $M_1$ and its estimated parameters, then provide an intelligible non technical interpretation of the model to help understand the relationship between $\textbf{prestige}$ and $\textbf{education}. \\$ 
+$\\$
+$M_1: \text{prestige} = -10.732 + 5.361(\text{education}) \\$
+Model 1 represents the relationship between prestoge and education. With the model, we get an $R_{adj}^2 = 0.720$, this indicates that the explanatory variable, education, explains 72% of the data relating to the response variable, prestige. That means 28% of the variation explanation is unaccounted for. This 28% may be explained if we were to add more explanatory variables or consider the impact of noise terms.
+
+2.5) Compare $M_3$ and $M_6$ thoroughly.   
+
+$$\begin{matrix} & M_3 & M_6 \\ SSE= & 6038.851 & 7892.225 \\ R^2= & 0.798 & 0.736 \\ R_{adj}^2= & 0.794 & 0.731 \\ PRESS= & 6486.836 & 8347.392 \\ AIC= & 713.7251 & 741.0268 \\ BIC = & 724.225 & 751.5267 \\ LogL= & -352.8625 (df=4) & -366.5134 (df=4) \\ C_p = & 2.1595 & 32.28552 \end{matrix}$$
+These two models are dealing with the same number of terms. Model 3 appears to outperform Model 6 in every category. Since $M_3$ has a slightly higher $R^2$ value, this indicates that it explains a higher percentage of variation. Furthermore, $M_3$ has the low AIC and BIC scores. Thus, indicating that $M_3$ is a better fit for the data than $M_6$. There is a major difference in their Mallows' $C_p$ values. An acceptable Mallow's $C_p$ value is one that's less than the number of predictor variables in the model plus one (for the intercept term), i.e. $\text{Mallows' } C_p < p+1$. Both models have $p=2$ prediction parameters, so acceptable values are ideally less than three. Only $M_3$ meets this condition; $M_6$ is much greater than 3, which indicates the estimated parameters have higher biases and more unexplained error. Looking at their PRESS values, $M_3$ has the higher value which indicates the model has a higher predictive ability. Finally, comparing their LogLikelihood values, $M_3$ has the higher value which indicates that it is more likely to recreate the data set given its model structure. Overall, Model 3 more accurately represents the Prestige data set as opposed to Model 6.
+
+
+2.6) Compare $M_1$ and $M_3$ both from the predicatively and from the goodness of fit perspective.     
+$$\begin{matrix} & M_3 & M_1 \\ SSE= & 6038.851 & 8286.99 \\ R^2= & 0.798 & 0.723 \\ R_{adj}^2= & 0.794 & 0.720 \\ PRESS= & 6486.836 & 8598.021 \\ AIC= & 713.7251 & 744.005 \\ BIC = & 724.225 & 751.8802 \\ LogL= & -352.8625 (df=4) & -369.003 (df=3) \\ C_p = & 2.1595 & 69.363 \end{matrix}$$
+$\\$
+- High $R^2, R^2_{adj},$ and LogLikelihood tests the model's goodness of fit/how well the model fits the data.               
+- Low $AIC, BIC, PRESS, \text{ and } SSE$ tells us if a model has strong predictive ability/represents the data well enough to predict the data based on the model alone.       
+- Mallows' $C_p$ score close to $p+1$ or lower indicate if the model has low or high bias. 
+$\\$
+$\\$
+Something to note is Models 1 and 3 are estimating different numbers and types of parameters. Model 1 deals with education alone while Model 3 deals with education and income. However, continuing this comparison, $M_3$ appears to be the better fit based on it's higher $R^2, R_{adj}^2,$ and LogLikelihood. Plus, it appears to be the better predictor model based on its lower SSE, PRESS, Mallows' $C_p$, AIC, and BIC scores. 
+ 
+Looking at the Residuals vs Fitted plot, the data points in Model 1 follow the LOESS line more closely than those in Model 3. The points in Model 3 appear to form a slight pattern, plus the majority of points land on the left side of the graph. Overall, Model 3 better fits the Prestige data set more so than Model 1. 
+```{r}
+plot(lm.M1)
+plot(lm.M3)
+```
+
+
+2.7) Find the best predictive model from the collection $\textbf{M}$, and denote it $M^*. \\$
+$\\$
+Model 4 appears to be the best predictive model based on the values and scores I obtained in the table above. For instance, this model has the highest $R^2$, indicating that it explains the highest percentage of variation, the lowest Mallows' $C_p$, indicating it contains the least bias and less unexplained error, and the lowest BIC score, indicating lower penalty terms and thus the better model to represent the Prestige data set. 
+
+$$\boxed{\it{M}^*: \textbf{prestige} = \beta_0^{(4)} + \beta_1^{(4)} ( \textbf{education}) + \beta_2^{(4)} (\textbf{income}) + \beta_3^{(4)} ( \textbf{income})^2 + \epsilon^{(4)}}$$
+
+
+2.8) Generate the residual plots for $M^*$ and comment extensively on it.       
+$\\$
+According to the Residuals vs Fitted plot, the data follows the LOESS (locally estimated scatterplot smoothing) fit line almost exactly. The points appear to be randomly scattered in a way that doesn't result in an underlying pattern. The data also doesn't favor one side of the graph or the other, so there are no appearent outliers or unusual influential points.
+
+```{r}
+lm.M.best <- lm(Prestige$prestige~Prestige$education+Prestige$income+I((Prestige$income)^2), data=xy)
+
+plot(lm.M.best)
+```
+
+
+
+
+\newpage
+
+BONUS 1:
+
+Reconsider the problem explored in Exercise 1. Now assume that you are graciously given the true noise variance $\sigma^2=4. \\$    
+
+B1.1) What is the most striking change brought about by this added knowledge?       
+When we change the variance to 4, we can deduce the new standard deviation is 2. Thus, the most striking change is that we're no longer dealing with a standard normal distribution. Now, $X \sim N(0,2) \text{ and } \epsilon \sim ^{(iid)} N_n (0, 4 \mathit{I}_n).$ The spread of the data has increased.
+
+Variance is still constant. 
+
+
+B1.2) Write down the variance covariance matrix of $\hat{\beta} \\$
+
+$$\mathbb{V}(\hat{\beta})= 4(X^{\top}X)^{-1} = \frac{4}{2.825} \begin{bmatrix}
+0.180  & 0.018  & 0.013  & -0.077 & -0.015 \\
+0.018  & 0.164 & -0.002 & -0.050 & 0.018 \\
+0.013  & -0.002 & 0.053 & -0.002 & -0.014 \\
+-0.077  & -0.050 & -0.002 &  0.097 & 0.014 \\
+-0.015  & 0.018 & -0.014 &  0.014 & 0.149 \\
+\end{bmatrix}$$
+$$= \boxed{\begin{bmatrix}
+0.255  & 0.025  & 0.018  & -0.109 & -0.021 \\
+0.025  & 0.232 & -0.003 & -0.003 & 0.025 \\
+0.018  & -0.003 & 0.020 & -0.003 & -0.020 \\
+-0.109  & -0.071 & -0.003 &  0.137 & 0.020 \\
+-0.021  & 0.025 & -0.025 &  0.020 & 0.211 \\
+\end{bmatrix}}$$
+
+***Notes:
+$$\mathbb{V}(\hat{\beta}) = \mathbb{E} \left[ (\hat{\beta} - \beta)^{\top} (\hat{\beta} - \beta) \right] = \sigma^2(X^{\top}X)^{-1}$$
+$$\text{With } Y=X \beta + \epsilon \text{ and } \mathbb{E}(\hat{\beta})=\beta$$
+$$= \mathbb{E}[((X^{\top}X)^{-1}X^{\top}Y- \beta)^{\top} ((X^{\top}X)^{-1}X^{\top}Y - \beta)]$$
+$$= \mathbb{E}[((X^{\top}X)^{-1}X^{\top}X \beta + \epsilon- \beta)^{\top} ((X^{\top}X)^{-1}X^{\top}X \beta + \epsilon - \beta)]$$
+$$= \mathbb{E}[ (\beta + (X^{\top}X)^{-1} X^{\top} \epsilon - \beta)^{\top}( \beta + (X^{\top}X)^{-1}X^{\top} \epsilon - \beta)]$$
+$$= \mathbb{E}[((X^{\top}X)^{-1} X^{\top} \epsilon)^{\top} (X^{\top}X)^{-1} X^{\top} \epsilon ]$$
+$$= \mathbb{E}[(X^{\top}X)^{-1} X^{\top}X \epsilon^{\top}\epsilon X^{\top}X^{\top} ]$$
+$$= \mathbb{E}[\epsilon^{\top}\epsilon] (X^{\top}X)^{-1} $$
+$$= \mathbb{E}(\epsilon^2) = \sigma^2 \text{ (homoscedasticity)}$$
+$$Var(\hat{\beta}) = \sigma^2 (X^{\top}X)^{-1} = \boxed{4(X^{\top}X)^{-1}}$$
+
+
+
+B1.3) Compute the Pvalue of the test $H_0: \beta_0 \geq 1$ versus $H_a: \beta_0 < 1. \\$    
+
+Note: Using significance level = 0.05       
+$$t_{20, 0.025} = \frac{\hat{\beta}_0-1}{ese(\hat{\beta}_0)} = \frac{0.904-1}{\sqrt{0.255}} -\frac{0.904-1}{\sqrt{0.255}}= -0.190$$
+$$\text{Since the p-val = } 0.426 > \alpha = 0.05, \text{ we cannot reject the null hypothesis. Therefore, there is evidence to support }\beta_0 \geq 1.$$
+```{r}
+qt(0.975, df=20)
+
+(0.904-1)/sqrt(0.255)
+```
+
+
+
+B1.4) Construct a 95% confidence interval for $\beta_4. \\$ 
+$$CI_{95 \%} = \left(\hat{\beta}_4 - t_{df, \alpha /2} \times ese(\hat{\beta}_4), \hat{\beta}_4 + t_{df, \alpha /2} \times ese( \hat{\beta}_4)  \right)$$
+$$= \left( 1.544 - t_{20, 0.025} \times \sqrt{0.211}, (1.544) + t_{20, 0.025} \times \sqrt{0.211}  \right)$$
+$$= \left(1.544 - 2.086(0.459), 7.72 + 2.086(0.459)  \right)$$
+$$95\% \text{ confidence interval for } 5 \beta_4 : \boxed{(0.586, 2.502)}$$
+```{r}
+qt(0.975, df=20)
+
+1.544+(2.085963*sqrt(0.211))
+1.544-(2.085963*sqrt(0.211))
+```
+
+
+B1.5) Construct a 95% confidence interval for $\mu (\mathbf{X}_0) \\$      
+$$CI_{95 \%} = \left( \widehat{\mu(\mathbf{x}_0)} - t_{df, \alpha /2} \times ese(\widehat{\mu(\mathbf{x}_0)}), \widehat{\mu(\mathbf{x}_0)} + t_{df, \alpha /2} \times ese(\widehat{\mu(\mathbf{x}_0)})  \right)$$
+
+$$= \left( 6.488 - 2.086 \left( \sqrt{\frac{4}{2.825} \begin{bmatrix} 1.03725 \end{bmatrix}} \right), 6.488 + 2.086 \left( \sqrt{\frac{4}{2.825} \begin{bmatrix} 1.03725 \end{bmatrix}} \right)  \right)$$
+$$95\% \text{ confidence interval: } \boxed{(3.913, 9.063)}$$
+```{r}
+qt(0.975, df=20)
+
+6.488+2.085963*(sqrt(4/2.825)*1.03725)
+6.488-2.085963*(sqrt(4/2.825)*1.03725)
+```
+
+
+
+
+BONUS 2:
+
+Consider the decomposition $SST = SSE + SSR$. The monotonicity of a function describes whether it is increasing or decreasing. Assume that $n > p + 1. \\$      
+
+B2.1) Discuss what happens to $R^2$ as a function of $p. \\$
+$$\boxed{\text{As the number of parameters (} p) \text{ increases, the value of } R^2 \text{ remains the same or increases.}}$$
+$$\boxed{ \text{(Non-decreasing property of }R^2)}$$
+$R^2$ produces an estimate of the relationship between movements of a dependent variable based on an independent variable's movement.
+$$R^2 = 1 - \frac{RSS}{SST}$$
+As a function of $p$, $R^2$ decreases at a rate of (n-1). 
+
+
+B2.2) Write down the expression of the $F$ statistic as a function of only $R^2, n, p. \\$
+$$F = \frac{MSR}{MSE}=\frac{\left( \frac{SSR}{1} \right)}{\left( \frac{SSE}{n-2} \right)}  =\boxed{\frac{\left( \frac{R^2}{p} \right)}{\left( \frac{1-R^2}{n-p-1} \right)}}$$
+The larger the $R^2$, the larger the values of $F$. So if $R^2$ is large then $F$ will be large and that will indicate the model fits the data well and at least one of the coefficients is non-zero. 
+
+
+B2.3) Discuss the monotonicity of $F$ as a function of $R^2$. (Hint: Remember that $0 \leq R^2 \leq 1$, and try a few values or even a plot.)        
+$$\boxed{\text{As the value of } R^2 \text{ increases, the value of } F \text{ also increases.}}$$
+$$= \frac{\left( \frac{0.87}{4} \right)}{\left( \frac{1-0.87}{20-4-1} \right)} = 25.096$$
+$$= \frac{\left( \frac{0.93}{4} \right)}{\left( \frac{1-0.93}{20-4-1} \right)} = 49.821$$
+$$= \frac{\left( \frac{0.61}{4} \right)}{\left( \frac{1-0.61}{20-4-1} \right)} = 5.8651$$
+
+```{r}
+(0.93/4)/((1-0.93)/(20-4-1))
+(0.87/4)/((1-0.87)/(20-4-1)) 
+(0.61/4)/((1-0.61)/(20-4-1))
+
+(0.93/2)/((1-0.93)/(20-2-1))
+(0.87/2)/((1-0.87)/(20-2-1))
+(0.61/2)/((1-0.61)/(20-2-1))
+```
+
+
+

@@ -1,0 +1,497 @@
+---
+title: "Marra Early Test 1"
+author: "Megan Marra"
+date: "2022-09-27"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+---
+title: "Marra Early Test 1"
+output:
+  html_document: default
+  pdf_document: default
+date: "2022-09-27"
+---
+
+```{r}
+library(car)
+library(corrplot)
+library(MPV)
+library(dplyr)
+library(ggplot2)
+```
+
+
+EXERCISE 1:
+
+Given information:  
+  $\hat{\beta_0} = 59.3013 \\$
+  $\hat{\beta_1} = 0.0231 \\$
+  $\text{SLR model: } \hat{Y}=59.3013 + 0.0231x \\$
+  $ese(\hat{\beta_0})=3.2293 \\$
+  $ese(\hat{\beta_1})=0.0120 \\$
+  $df=n-2=14 \Rightarrow n=16 \\$
+  Here, we are modeling the relationship between being Employed and being in the Armed Forces.   
+
+1) Given $SST=185$ and the information above, compute the value of $R^2$, the percentage of variation explained.
+```{r}
+
+# SSE
+(14)*(3.233)^2
+
+# SST
+185
+
+# SSR
+185-146.332
+
+#R-squared = SSR/SST:
+38.668/185
+
+```
+
+$\boxed{R^2=0.2090162} \\$
+
+(NOTES FOR MYSELF)     
+SSR=SST-SSE   
+SST = the maximum sum of squares of errors   
+SSE = $(df)(\text{res std error})^2 \\$
+$SST= \sum(y-\bar{y})^2 \\$
+$SST = SSE + SSR \\$
+$\hat{\beta_1}=\frac{S_{XY}}{S_{XX}} \\$
+$\hat{\beta_0}=\bar{y}-\hat{\beta_1}\bar{x} \\$
+
+$\text{residual standard error } = \frac{\sqrt{SS_{\text{residuals}}}}{df_{\text{residuals}}} \\$
+$SS_{\text{residuals}}= \text{the residual sum of squares} \\$
+$df_{\text{residuals}}=n-p-1 \\$
+  $n$ = total # of observations  
+  $p$ = total model parameters   
+  
+$R^2=1-\frac{SS_{\text{residuals}}}{SS_{\text{total}}} \\$
+$R^2=\frac{SSR}{SST} \\$
+$R^2=1-\frac{\sum(Y_i-\hat{Y_i})^2}{\sum(Y_i-\bar{Y_i})^2} \\$
+
+
+2) Use the fact that SST=SSR+SSE to compute the F statistic.    
+$F=\frac{\frac{SSR}{1}}{\frac{SSE}{n-2}} \\$
+```{r}
+(38.668/1)/(146.332/14)
+```
+$\boxed{\text{F-statistic}=3.699478}$
+
+3) How many observations were used in this study? Explain. 
+
+$\boxed{n=16}$ Since we were told we're using 14 degrees of freedom, and df=n-2 in this case. Therefore, $14=n-2$ and $n=16$.   
+
+df(SSR) = 1  
+df(SSE) = n-2   
+df(SST) = n-1   
+
+4) Is the regression model significant? Explain.   
+
+This depends on the chosen level of significance. If we were to construct a 90% confidence interval, this model would be considered significant since the p-value (0.0749) is less than $\alpha=.10$. However, if we wanted to be more confident and construct 95% or 99% confidence intervals, this model would be insignificant since 0.0749 > 0.05 and 0.01.   
+
+5) Is the predictor variable significant? Explain.   
+
+Ideally we want the p-value of our predictor variables to be as close to zero as possible. This p-value, 0.0749, is somewhat high, but if we were to pick an $\alpha=0.10$ this variable could be considered significant.   
+
+
+6) Does the model need an intercept? Explain.   
+Yes, the model needs an intercept. We can tell since the intercept is exactly zero. Thus, no matter what $\alpha$ value we pick, this p-value will always be less than it.   
+
+
+7) Given SST=185 and the information above, compute the value of $R_{\text{adj}}^2$, the adjusted percentage of variation explained.     
+$R_{\text{adj}}^2 = 1- \frac{\frac{SSR}{(n-p)}}{\frac{SST}{(n-1)}} \\$
+```{r}
+1 - ((146.332/(16-2))/(185/(16-1)))
+```
+$\boxed{R_{adj}^2=0.1525174} \\$
+
+8) Suggest a significance level at which the model is significant, and for this significance level, construct a corresponding confidence interval for the slope.   
+
+If we pick an $\alpha$ value of 0.1, this model would be considered significant. Since the p-value 0.0749 < $\alpha = 0.10$.     
+
+\newpage
+
+EXERCISE 2:
+
+Given information:    
+$\hat{\beta_0}=51.8436 \\$   
+$\hat{\beta_1}=0.0348 \\$   
+$\text{SLR model: } \hat{Y}=51.8436 + 0.0348x \\$    
+$ese(\hat{\beta_0})=0.6814 \\$    
+$ese(\hat{\beta_1})=0.0017 \\$    
+$df=n-2=14 \Rightarrow n=16 \\$    
+
+$\eta = E[ \text{Employed|GNP+5}] - E[\text{Employed|GNP}] \\$    
+
+1) Compute the value of the F-statistic for this study.    
+$\text{F-statistic} = \frac{\frac{SSR}{1}}{\frac{SSE}{n-2}} \\$
+$SSE = (df)(\text{res std error})^2 \\$
+$SST = \frac{SSE}{1-R^2} \\$
+$SSR = SST - SSE$
+```{r}
+# SSE
+(.6566)^2*(16-2)
+
+# SST
+(6.03573)/(1-(0.9674)^2)
+
+# SSR 
+94.10648-9.03573
+
+# F-stat
+85.07075/6.03573
+```
+$\boxed{\text{F-statstic} = 14.09453}$
+
+2) Derive and write down a simplified expression of $\eta$.    
+$\rightarrow E[\text{Employed|GNP}] = \beta_0 + \beta_1(\text{GNP}) \\$
+$\rightarrow E[\text{Employed|GNP+5}] = \beta_0 + \beta_1(\text{GNP+5}) = \beta_0 + \beta_1(\text{GNP}) + 5\beta_1\\$
+$E[ \text{Employed|GNP+5}] - E[\text{Employed|GNP}] = \beta_0 + \beta_1(\text{GNP}) +5\beta_1 - \beta_0 - \beta_1(\text{GNP}) \\$
+$\Rightarrow \eta = 5\beta_1$
+
+
+3) Find a point estimate $\hat{\eta}$ of $\eta$.     
+$\eta = E[ \text{Employed|GNP+5}] - E[\text{Employed|GNP}] \\$
+$= 5(\hat{\beta_1)}^{(GNP)} \\$
+```{r}
+5*0.0348
+```
+$\boxed{\hat{\eta}=0.174} \\$
+
+
+4) Construct a $95\%$ confidence interval for $\eta$.   
+
+Given the output:   $5(0.03, 0.04) \rightarrow \text{95\% CI for } \eta:(0.15, 0.20) \\$ 
+
+\newpage
+
+EXERCISE 3    
+
+An economist claims the true average in Employed caused by a single unit increase in GNP is actually greater than 3.1%.   
+
+1) Write the null and hypotheses that formulate this claim.   
+
+$H_0: E[\text{Employed | GNP +1}] \leq 0.031 \\$ 
+$H_a: E[\text{Employed | GNP +1}] > 0.031 \\$
+
+2) Draw the rejection region, given significance level $\alpha=0.01$.    
+```{r}
+draw_cr <- function(type = "right-tailed", df, cv, lowerx = -5, upperx = 5) {
+  x <- seq(lowerx, upperx, len = 1000)
+  dx <- dt(x, df = df)
+  plot(x, dx, xlab = "Test Value", ylab = "GNP", type = "l")
+  abline(h = 0)
+
+  if(type == "left-tailed") {
+    cvx <- seq(lowerx, cv, len = 100)
+    cvx2 <- c(cvx, rev(cvx))
+    dcvx <- dt(cvx, df = df)
+    dcvx2 <- c(dcvx, rep(0, length(cvx)))
+    polygon(cvx2, dcvx2, col = "grey")
+  }else if (type == "right-tailed") {
+    cvx <- seq(cv, upperx, len = 100)
+    cvx2 <- c(cvx, rev(cvx))
+    dcvx <- dt(cvx, df = df)
+    dcvx2 <- c(dcvx, rep(0, length(cvx)))
+    polygon(cvx2, dcvx2, col = "orange")
+  }else {
+    cvx <- seq(lowerx, -abs(cv), len = 100)
+    cvx2 <- c(cvx, rev(cvx))
+    dcvx <- dt(cvx, df = df)
+    dcvx2 <- c(dcvx, rep(0, length(cvx)))
+    polygon(cvx2, dcvx2, col = "grey")
+    cvx <- seq(abs(cv), upperx, len = 100)
+    cvx2 <- c(cvx, rev(cvx))
+    dcvx <- dt(cvx, df = df)
+    dcvx2 <- c(dcvx, rep(0, length(cvx)))
+    polygon(cvx2, dcvx2, col = "grey")
+  }
+  
+  legend("topright", c("Rejection Region (RR)", "non-RR"), fill = c("orange", "white"), cex=0.9)
+  
+}
+
+draw_cr("right-tailed", df = 14, cv = qt(.99,df=14))
+
+```
+Must reject null hypothesis if the test statistic is greater than 2.624494.    
+
+3) Express the rejection region in set format.   
+
+$\boxed{RR_{0.01}=\{ t_{\hat{\beta_1}}: t_{\hat{\beta_1}}>2.624494 \}} \\$
+
+
+4) Calculate the value of the test statistic.    
+```{r}
+qt(0.99, df=14)
+```
+
+$t_{\hat{\beta_1}}=\frac{\hat{\beta_1}-0.031}{ese(\hat{\beta_1})} \\$
+```{r}
+# test stat for beta1hat
+(0.0348-0.031)/0.0017
+```
+
+$\boxed{\text{Test statistic }= 2.235294} \\$
+
+5) Can you conclude the economist is right? Explain.    
+
+No, since 2.235294 < 2.624494, the test statistic is outside of the rejection region so we cannot reject $H_0$. 
+
+
+\newpage
+
+EXERCISE 4)    
+
+- Number of observations = p = 26 randomly selected males   
+- Using p2.10 data set.    
+- Assumed weight and BP are jointly normally distributed.    
+- Weight = predictor variable (x)       
+- SysBP = response variable  (y)     
+- Here, we are using weight to predict/estimate systolic blood pressure.     
+
+1) Give thorough look at data. Use different plots and summaries as needed 
+```{r}
+boxplot(p2.10$weight,p2.10$sysbp)
+```
+```{r}
+# This just tells me the number of people within different weight categories. 
+# Don't think this even tells me anything about the data related to sysbp. 
+
+hist(p2.10$weight) 
+```
+
+```{r}
+attach(p2.10)
+
+x <- p2.10$weight
+y <- p2.10$sysbp
+
+model <- lm(sysbp~weight, data=p2.10)
+
+summary(model)
+
+plot(model)
+
+res <- resid(model)
+plot(fitted(model), res)
+abline(0,0)
+
+cor(p2.10$weight, p2.10$sysbp)
+
+.7734903^2 # Barely 60%, not everything explained (40% unexplained)
+```
+
+According to the plots and summaries produced above, it appears there is an issue with the residual plot, but I do not have access to enough information to investigate what that specific problem is. When looking at the residual vs. fitted plot, there is a slight pattern forming. This tells me the residuals are not as randomly scattered as they should be, which is an issue worth investigating. However, when calculating the correlation between variables, I only have access to approximated $60\%$ of the data. I would need the other $40\%$ of information to be able to further investigate what's causing the residuals to behave less randomly.      
+
+2) Generate the scatterplot and comment.
+```{r, echo=FALSE}
+attach(p2.10)
+with(p2.10, plot(weight, sysbp, main="Scatterplot", xlab="SysBP", ylab="Weight", pch=1))
+```
+According the scatterplot, the relationship between the two variables is relatively positive. Meaning there is some relation between systolic blood pressure and weight. 
+
+3) Build the OLS regression line.  
+
+$\text{SysBP}= \beta_0 + \beta_1 (\text{Weight}) + \epsilon \\$
+
+```{r, echo=TRUE, out.width="100%", collapse=TRUE}
+x <- p2.10$weight
+y <- p2.10$sysbp
+lm.xy <- lm(y~x)
+
+slope <- cor(x, y)*(sd(y)/sd(x))
+intercept <- mean(y) - (slope * mean(x))
+
+p2.10 %>%
+  ggplot(aes(x = weight, y = sysbp)) + 
+  geom_point(color = "red") +
+  geom_smooth(method ="lm", fill = NA)
+
+cor(x, y)
+
+
+# Below shows ways to strengthen the relationship between x and y. 
+# (By using a square root transformation)
+
+# p2.10 %>%
+  # ggplot(aes(x = sqrt(x), y = sqrt(y))) + 
+  # geom_point(color = "red") +
+  # geom_smooth(method ="lm", fill = NA)
+
+# Need to investigate the variance in order to determine whether the 
+# relationship is statistically significant. If the data is well fitted to the line, 
+
+# model1 <- lm(sqrt(y)~sqrt(x), data=p2.10)
+# model1$coefficients
+# summary(model1)
+```
+
+4) Use the confpredbandlm() command to superpose the estimated least squares regression line. 
+```{r}
+# model <- lm(sysbp~weight, data=p2.10)
+x <- p2.10$weight
+y <- p2.10$sysbp
+lm.xy <- lm(y~x)
+
+#
+#   source('confpredbandlm.R')
+#
+
+   confpredbandlm <- function(x,y, lm.xy, level)
+   {
+    
+      # x    : Explanatory variable
+      # y    : Response variable
+      # level: Confidence level
+     
+      library(ggplot2)
+        
+      xxnew <- data.frame(x=x)
+      xnew  <- x
+      ynew  <- y
+      yhat  <- fitted(lm.xy)
+      
+      pred.band <- predict(lm.xy, xxnew, interval="prediction", level=level)
+      conf.band <- predict(lm.xy, xxnew, interval="confidence", level=level)
+    
+      datadone <- data.frame(xnew,ynew, conf.band[,1], conf.band[,2], conf.band[,3], pred.band[,2], pred.band[,3])
+      colnames(datadone) <- c('x', 'y', 'yhat', 'lc', 'uc', 'lp','up')
+    
+      
+      p <- ggplot(datadone, aes(x, y)) +
+           geom_point() +
+           geom_line(color='black', aes(x=x, y=yhat))
+    
+      p + geom_line(aes(y = lc), color = "blue", linetype = "dotted")+
+          geom_line(aes(y = uc), color = "blue", linetype = "dotted") +
+          geom_line(aes(y = lp), color = "red", linetype = "dashed")+
+          geom_line(aes(y = up), color = "red", linetype = "dashed") 
+    
+   }
+   
+
+confpredbandlm(x,y, lm.xy, level=.95)
+
+```
+
+
+5) Generate a display of the summary of the model and create with the complete residual analysis plots. Comment on your findings.
+```{r}
+summary(lm.xy)
+```
+Since all displayed p-values are incredibly close to zero, if we pick significance levels of 0.1, 0.05, 0.01, the p-value will always be less than $\alpha$. Thus, according to the summary above, there is a strong relationship between weight and systolic blood pressure -- weight is a significant predictor of systolic blood pressure.       
+
+
+6) Let $\mu_{\text{SysBP}}(\text{Weight})=E[\text{SysBP|Weight}]$ denote the expected sys BP given the weight. Compute a $92\%$ confidence interval for $\mu_{\text{SysBP}}(153)$.     
+```{r}
+xnew <- data.frame(weight=c(153))
+predict(model, xnew, interval="confidence", level=0.92)
+
+# If I wanted a prediction interval: 
+# predict(model, xnew, interval="prediction", level=0.92)
+# model <- lm(sysbp~weight, data=p2.10)
+
+```
+
+$\boxed{\text{92\% CI: } (128.3838, 138.166)}$
+
+
+7) Compute the residual sum of squares (sum of squares of errors).    
+$SSE = \sum_{i-1}^{n}(\text{SysBP}_i - \hat{\text{SysBP}_i})^2 \\$
+$RRS = \sum_{i=1}^{n} \hat{\epsilon_1}^2 = \sum_{i=1}^{n}(y_i-\hat{y_i})^2 = \sum_{i=1}^{n}(y_i-b_0-b_ix_i)^2= SSE(b_0, b_1) \\$
+
+```{r}
+# Based off of previous summary(lm.xy)
+
+# SSE
+(24)*(8.681)^2
+
+#or
+
+sum(resid(lm.xy)^2)
+```
+
+$\boxed{\text{Res Sum of Squares (RSS)}=1808.634} \\$
+
+
+8) Determine and write down the expression of $\theta$, where $\theta$ is defined by $\theta = E[\text{SysBP|Weight+3}]-E[\text{SysBP|Weight}]. \\$
+
+$E[\text{Employed|Weight}] = \beta_0 + \beta_1(\text{Weight}) \\$
+$\rightarrow E[\text{Employed|Weight+3}] = \beta_0 + \beta_1(\text{Weight+3}) = \beta_0 + \beta_1(\text{Weight}) + 5\beta_1\\$
+$E[ \text{Employed|Weight+3}] - E[\text{Employed|Weight}] = \beta_0 + \beta_1(\text{Weight}) +3\beta_1 - \beta_0 - \beta_1(\text{Weight}) \\$
+$\Rightarrow \boxed{\theta = 3\beta_1} \\$
+
+9) Let $\theta^{(0)} = 1.5$. Test the given hypothesis test:       
+$H_0: \theta \geq \theta^{(0)} \\$ $H_a: \theta < \theta^{(0)} \\$   
+
+Note: I will be using the significance level $\alpha=.01. \\$
+
+```{r}
+qt(.90, df=24)
+```
+
+$t_{\hat{\beta_1}}=\frac{\hat{\beta_1}-1.5}{ese(\hat{\beta_1})} \\$
+```{r}
+# test stat for beta1hat
+((0.41942)-1.5)/0.07015
+```
+Reject $H_0$ if $T > t_{\alpha/2, n-2} \\$
+Since $-15.40385 \not> 1.317836$, we have insufficient evidence to reject our null hypothesis. 
+
+Initial Attempt that I don't think makes sense (Scratch Work):    
+$H_0: \theta \geq 1.5 \\$
+$H_a: \theta < 1.5 \\$ 
+
+$H_0: 3\beta_1 \geq 1.5 \\$
+$H_a: 3\beta_1 < 1.5 \\$
+Since $\beta_1$ is unknown, I can only test the given hypothesis with the estimated $\hat{\beta_1}$.     
+$H_0: 3(\hat{\beta_1}) \geq 1.5 \\$
+$H_a: 3(\hat{\beta_1}) < 1.5 \\$
+
+$H_0: 3(0.41942) \geq 1.5 \\$
+$H_a: 3(0.41942) < 1.5 \\$
+
+$H_0: 1.25823 \geq 1.5 \\$
+$H_a: 1.25823 < 1.5 \\$
+
+Since 1.25823 < 1.5, we can reject the null hypothesis.
+
+\newpage
+
+
+BONUS:      
+
+1) Show that $\hat{\beta_1}=r\frac{S_y}{S_x}$ where $r$ is the sample correlation coefficient and $S_y^2$ and $S_x^2$ are the sample variances of $Y$ and $X$ respectively.        
+Using the fact that:      
+$r_{xy}=\frac{S_{xy}}{S_xS_y} \\$
+$S_{xy} = \text{sample covariance} \\$   
+$S_x, S_y = \text{sample standard deviations} \\$
+
+$\Rightarrow \hat{\beta_1}=r\frac{S_y}{S_x}$
+$\hat{\beta_1}=(\frac{S_{xy}}{S_xS_y})(\frac{S_y}{S_x}) \\$
+$\hat{\beta_1} = (\frac{S_{xy}}{S_x})(\frac{1}{S_x}) \\$
+$\hat{\beta_1} = \frac{S_{xy}}{S_x^2} \\$
+$\hat{\beta_1} = \frac{S_{xy}}{S_{xx}} \checkmark \\$
+$\hat{\beta_1}= \frac{\sum_{i=1}^{n}(x_i-\bar{x})(y_i-\bar{y})}{\sum_{i=1}^{n}(x_i-\bar{x})^2} \checkmark\\$
+
+2) Show that $SSR = (\hat{\beta_1})^2 S_{XX}$.     
+Hint: Use the fact that $\hat{y}=\hat{\beta_0}+\hat{\beta_1}x_i$ along with the expression of the estimator $\hat{\beta_0}$ as a function of $\hat{\beta_1}$.    
+
+Using the fact that:      
+$\hat{\beta_1}=\bar{y}-\hat{\beta_1}\bar{x} \\$
+$\hat{\beta_1}=\frac{S_{XY}}{S_{XX}} \\$
+
+
+$\Rightarrow SSR = \sum_{i=1}^{n}(\hat{y_i}-\bar{y_i})^2 \\$
+$= \sum_{i=1}^{n}(\bar{y}-\hat{\beta_0}-\hat{\beta_1}\bar{x})^2 \\$
+$= SSE(\hat{\beta_0}, \hat{\beta_1}) \checkmark \\$
+
